@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Painel — Uneven Media</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- design system: no site (GitHub Pages) os dois CSS ficam na mesma pasta; no n8n estes <link> são substituídos pelo conteúdo (inline) -->
+<link rel="stylesheet" href="tokens.css" data-ds="tokens">
+<link rel="stylesheet" href="components.css" data-ds="components">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-512.png">
+<meta name="theme-color" content="#08090B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Painel">
+<style>
+  /* Específico do painel — só tokens, nada cru. */
+  .p-client { display: flex; flex-direction: column; gap: var(--un-s2); }
+  .p-client .un-h3 { font-size: 17px; }
+  .p-side-foot { margin-top: auto; display: flex; flex-direction: column; gap: var(--un-s3); }
+  .p-status { display: flex; align-items: center; gap: 8px; font: var(--un-mono-sm); color: var(--un-muted); }
+  .p-view-title { display: flex; align-items: baseline; gap: var(--un-s3); min-width: 0; }
+  .p-view-title .un-label { display: none; }
+  .p-count { font: var(--un-mono-sm); color: var(--un-faint); min-width: 60px; text-align: right; }
+  .p-icon { width: 18px; height: 18px; flex: none; }
+  .p-day { margin-bottom: var(--un-s5); }
+  .p-day .un-label { margin-bottom: var(--un-s2); }
+  .p-time { font: 700 15px/1 var(--un-font-ui); color: var(--un-txt); min-width: 64px; letter-spacing: var(--un-track-tight); }
+  .p-kv { width: 100%; border-collapse: collapse; margin-top: var(--un-s3); }
+  .p-kv td { padding: 5px 0; border-bottom: 1px solid var(--un-line-soft); vertical-align: top; font: var(--un-body-md); font-size: 14.5px; }
+  .p-kv td:first-child { width: 40%; font: var(--un-label); letter-spacing: var(--un-track-label); text-transform: uppercase; color: var(--un-muted); padding-top: 8px; }
+  .p-kv tr:last-child td { border-bottom: 0; }
+  .p-card-head { display: flex; justify-content: space-between; gap: var(--un-s3); align-items: flex-start; flex-wrap: wrap; }
+  .p-card-foot { display: flex; gap: var(--un-s2); margin-top: var(--un-s4); flex-wrap: wrap; }
+  .p-hero { display: flex; align-items: center; gap: var(--un-s4); }
+  .p-hero .un-dot { width: 10px; height: 10px; }
+  .p-note { font: var(--un-mono-sm); color: var(--un-faint); margin-top: var(--un-s6); line-height: 1.7; }
+  .p-topbar-actions { display: flex; align-items: center; gap: var(--un-s3); }
+  .p-seg-short { display: none; }
+  @media (max-width: 900px) {
+    .p-topbar-actions .un-seg > button { padding: 7px 9px; }
+    .p-seg-short { display: inline; }
+    .p-view-title { flex-direction: column; gap: 2px; }
+    .p-view-title .un-label { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
+    .p-view-title .un-h3 { white-space: nowrap; }
+    .p-hide-m { display: none !important; }
+    .p-seg-long { display: none; }
+  }
+  .p-hide-d { display: none; }
+  @media (max-width: 900px) { .p-hide-d { display: initial; } div.p-hide-d { display: block; } div.p-hide-d.un-item__text { display: -webkit-box; } }
+</style>
+</head>
+<body class="un-root">
+
+<div class="un-app" id="app">
+  <aside class="un-side">
+    <div class="p-client">
+      <p class="un-label" id="s-persona">—</p>
+      <h1 class="un-h3" id="s-nome"><span class="un-skel">Carregando o painel</span></h1>
+      <p class="un-mono" id="s-sub"></p>
+    </div>
+    <nav class="un-nav" id="nav"></nav>
+    <div class="p-side-foot">
+      <p class="un-label" id="s-refresh-label">atualiza a cada</p>
+      <div class="un-seg" id="seg-refresh" role="group"></div>
+      <div class="p-status"><span class="un-dot" id="s-dot"></span><span id="s-status">—</span></div>
+      <a class="un-wordmark" href="https://unevenmedia.com" target="_blank" rel="noopener">Uneven Media</a>
+    </div>
+  </aside>
+
+  <main class="un-main">
+    <header class="un-topbar">
+      <div class="p-view-title">
+        <p class="un-label" id="t-persona"></p>
+        <h2 class="un-h3" id="t-title">—</h2>
+      </div>
+      <div class="un-topbar__grow"></div>
+      <div class="p-topbar-actions">
+        <div class="un-seg" id="seg-dias" role="group"></div>
+        <button class="un-btn un-btn--ghost un-btn--sm" id="btn-refresh" type="button">
+          <svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+          <span class="p-hide-m" id="btn-refresh-txt">atualizar</span>
+        </button>
+        <span class="p-count p-hide-m" id="t-countdown"></span>
+      </div>
+    </header>
+    <div class="un-content" id="view"></div>
+  </main>
+</div>
+<nav class="un-tabbar" id="tabbar"></nav>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- config ---------- */
+  const Q = new URLSearchParams(location.search);
+  const API = (location.protocol === 'file:' || !/hstgr\.cloud$/.test(location.hostname))
+    ? 'https://n8n-aib8.srv1923430.hstgr.cloud/webhook/painel-dados'
+    : '/webhook/painel-dados';
+  // Acesso: vem na URL na primeira vez; fora do n8n (origem normal) fica guardado no aparelho,
+  // para o app instalado abrir sem o link. ?sair=1 apaga. No n8n (origem opaca) o storage não existe — try/catch.
+  let CLIENTE = Q.get('cliente') || '', TOKEN = Q.get('token') || '';
+  try {
+    if (Q.get('sair')) { localStorage.removeItem('un-painel'); CLIENTE = ''; TOKEN = ''; }
+    else if (CLIENTE && TOKEN) localStorage.setItem('un-painel', JSON.stringify({ cliente: CLIENTE, token: TOKEN }));
+    else { const s = JSON.parse(localStorage.getItem('un-painel') || 'null'); if (s && s.cliente && s.token) { CLIENTE = s.cliente; TOKEN = s.token; } }
+  } catch (e) {}
+  const STANDALONE = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  const state = {
+    dias: [7, 14, 30].includes(Number(Q.get('dias'))) ? Number(Q.get('dias')) : 7,
+    refreshMin: [2, 5, 15].includes(Number(Q.get('refresh'))) ? Number(Q.get('refresh')) : 5,
+    lang: ['pt', 'en', 'es'].includes(Q.get('lang')) ? Q.get('lang') : 'pt',
+    data: null, loading: false, erro: null, atualizadoEm: null, proxima: null, timer: null, tick: null, latencia: null
+  };
+
+  /* ---------- i18n ---------- */
+  const T = {
+    pt: {
+      visao: 'Visão geral', conversas: 'Conversas', agenda: 'Agenda', cotacoes: 'Cotações', saude: 'Sistema',
+      atualiza: 'atualiza a cada', min: 'min', atualizar: 'atualizar', atualizado: 'atualizado às', em: 'em', agora: 'agora',
+      dias: (n) => n + ' dias', conversasPeriodo: 'conversas no período', respondidas: 'mensagens enviadas', recebidas: 'mensagens recebidas',
+      agendamentos: 'atendimentos realizados', prox7: 'próximos 7 dias', transbordos: 'passaram para você', primeira: 'tempo até a 1ª resposta',
+      fonteFalhou: 'Uma das fontes não respondeu nesta atualização. Onde está "sem dados", o número não foi lido — não é zero.', sistemaSemDados: 'Sem leitura das automações nesta atualização.',
+      nadaConversas: 'Nenhuma conversa ainda.', maisRecentes: (n) => 'as ' + n + ' conversas mais recentes',
+      instalar: 'no celular', instalarTxt: 'Abra este link no celular e use "Adicionar à tela inicial" no menu do navegador. O painel vira um ícone e abre sem precisar do link.',
+      resolvidas: 'conversas encerradas', prontas: 'cotações prontas', prontaUma: 'pronta para cotar', emColeta: 'em coleta', comCorretor: 'com o corretor',
+      vsAnterior: 'vs. período anterior', semBase: 'sem base anterior', porDia: 'Conversas por dia', proxHorarios: 'Próximos horários',
+      prontasCotar: 'Prontas para cotar', esperando: 'Esperando você', esperandoN: (n) => n === 1 ? '1 conversa esperando a sua resposta.' : n + ' conversas esperando a sua resposta.',
+      nada: 'Nada por aqui neste período.', nadaProx: 'Nenhum horário marcado para os próximos 7 dias.', nadaProntas: 'Nenhuma cotação pronta agora.',
+      abrir: 'Abrir', abrirConversa: 'Abrir conversa', copiar: 'Copiar ficha', copiado: 'Copiado', cliente: 'Cliente', status: 'Status', ultima: 'Última mensagem', quando: 'Quando',
+      stComBia: (p) => 'com ' + p, stComVoce: 'com você', stEncerrada: 'encerrada', stSnoozed: 'adiada', notaInterna: 'nota interna',
+      porServico: 'Por serviço', avaliacoes: 'pedidos de avaliação enviados', porRamo: 'Por ramo', faltando: 'Faltando', cutucada: 'lembrete enviado',
+      sistemaOk: 'Nenhuma falha registrada nas automações nas últimas 24 horas.', sistemaFalhas: (n) => n === 1 ? '1 falha registrada nas automações nas últimas 24 horas.' : n + ' falhas registradas nas automações nas últimas 24 horas.',
+      ultimaFalha: 'última falha', latencia: 'tempo de resposta do painel', fonte: 'fonte dos dados', fonteTxt: 'caixa de entrada, agenda e automações — lidos ao vivo a cada atualização',
+      erroCarregar: 'Não consegui atualizar agora. Mostrando os últimos dados.', erroAuth: 'Este link não é válido. Peça um novo para a Uneven.', carregando: 'Carregando',
+      hoje: 'hoje', amanha: 'amanhã', semDados: 'sem dados', nota: 'Números lidos direto do sistema. O que não foi medido não aparece.',
+      seg: 's', naoLidas: (n) => n + ' não lida' + (n === 1 ? '' : 's'), de: { cliente: 'cliente', nos: '' }
+    },
+    en: {
+      visao: 'Overview', conversas: 'Conversations', agenda: 'Schedule', cotacoes: 'Quotes', saude: 'System',
+      atualiza: 'refreshes every', min: 'min', atualizar: 'refresh', atualizado: 'updated at', em: 'in', agora: 'now',
+      dias: (n) => n + ' days', conversasPeriodo: 'conversations in period', respondidas: 'messages sent', recebidas: 'messages received',
+      agendamentos: 'appointments completed', prox7: 'next 7 days', transbordos: 'handed to you', primeira: 'time to first reply',
+      fonteFalhou: 'One data source did not respond on this refresh. Where it says "no data", the number was not read — it is not zero.', sistemaSemDados: 'No reading from the automations on this refresh.',
+      nadaConversas: 'No conversations yet.', maisRecentes: (n) => 'the ' + n + ' most recent conversations',
+      instalar: 'on your phone', instalarTxt: 'Open this link on your phone and use "Add to Home Screen" in the browser menu. The dashboard becomes an icon and opens without the link.',
+      resolvidas: 'conversations closed', prontas: 'quotes ready', prontaUma: 'ready to quote', emColeta: 'collecting', comCorretor: 'with the broker',
+      vsAnterior: 'vs. previous period', semBase: 'no previous period', porDia: 'Conversations per day', proxHorarios: 'Upcoming appointments',
+      prontasCotar: 'Ready to quote', esperando: 'Waiting for you', esperandoN: (n) => n === 1 ? '1 conversation is waiting for your reply.' : n + ' conversations are waiting for your reply.',
+      nada: 'Nothing here for this period.', nadaProx: 'No appointments in the next 7 days.', nadaProntas: 'No quotes ready right now.',
+      abrir: 'Open', abrirConversa: 'Open conversation', copiar: 'Copy details', copiado: 'Copied', cliente: 'Customer', status: 'Status', ultima: 'Last message', quando: 'When',
+      stComBia: (p) => 'with ' + p, stComVoce: 'with you', stEncerrada: 'closed', stSnoozed: 'snoozed', notaInterna: 'internal note',
+      porServico: 'By service', avaliacoes: 'review requests sent', porRamo: 'By line', faltando: 'Missing', cutucada: 'reminder sent',
+      sistemaOk: 'No failures recorded in the automations in the last 24 hours.', sistemaFalhas: (n) => n === 1 ? '1 failure recorded in the automations in the last 24 hours.' : n + ' failures recorded in the automations in the last 24 hours.',
+      ultimaFalha: 'last failure', latencia: 'dashboard response time', fonte: 'data source', fonteTxt: 'inbox, calendar and automations — read live on every refresh',
+      erroCarregar: "Couldn't refresh right now. Showing the latest data.", erroAuth: 'This link is not valid. Ask Uneven for a new one.', carregando: 'Loading',
+      hoje: 'today', amanha: 'tomorrow', semDados: 'no data', nota: 'Numbers are read straight from the system. What was not measured is not shown.',
+      seg: 's', naoLidas: (n) => n + ' unread', de: { cliente: 'customer', nos: '' }
+    },
+    es: {
+      visao: 'Resumen', conversas: 'Conversaciones', agenda: 'Agenda', cotacoes: 'Cotizaciones', saude: 'Sistema',
+      atualiza: 'se actualiza cada', min: 'min', atualizar: 'actualizar', atualizado: 'actualizado a las', em: 'en', agora: 'ahora',
+      dias: (n) => n + ' días', conversasPeriodo: 'conversaciones en el período', respondidas: 'mensajes enviados', recebidas: 'mensajes recibidos',
+      agendamentos: 'citas realizadas', prox7: 'próximos 7 días', transbordos: 'pasaron a ti', primeira: 'tiempo hasta la 1ª respuesta',
+      fonteFalhou: 'Una de las fuentes no respondió en esta actualización. Donde dice "sin datos", el número no se leyó — no es cero.', sistemaSemDados: 'Sin lectura de las automatizaciones en esta actualización.',
+      nadaConversas: 'Todavía no hay conversaciones.', maisRecentes: (n) => 'las ' + n + ' conversaciones más recientes',
+      instalar: 'en el celular', instalarTxt: 'Abre este enlace en el celular y usa "Agregar a la pantalla de inicio" en el menú del navegador. El panel se vuelve un ícono y abre sin el enlace.',
+      resolvidas: 'conversaciones cerradas', prontas: 'cotizaciones listas', prontaUma: 'lista para cotizar', emColeta: 'en recolección', comCorretor: 'con el corredor',
+      vsAnterior: 'vs. período anterior', semBase: 'sin período anterior', porDia: 'Conversaciones por día', proxHorarios: 'Próximas citas',
+      prontasCotar: 'Listas para cotizar', esperando: 'Esperándote', esperandoN: (n) => n === 1 ? '1 conversación espera tu respuesta.' : n + ' conversaciones esperan tu respuesta.',
+      nada: 'Nada por aquí en este período.', nadaProx: 'Sin citas en los próximos 7 días.', nadaProntas: 'Ninguna cotización lista ahora.',
+      abrir: 'Abrir', abrirConversa: 'Abrir conversación', copiar: 'Copiar ficha', copiado: 'Copiado', cliente: 'Cliente', status: 'Estado', ultima: 'Último mensaje', quando: 'Cuándo',
+      stComBia: (p) => 'con ' + p, stComVoce: 'contigo', stEncerrada: 'cerrada', stSnoozed: 'pospuesta', notaInterna: 'nota interna',
+      porServico: 'Por servicio', avaliacoes: 'solicitudes de reseña enviadas', porRamo: 'Por ramo', faltando: 'Falta', cutucada: 'recordatorio enviado',
+      sistemaOk: 'Ningún fallo registrado en las automatizaciones en las últimas 24 horas.', sistemaFalhas: (n) => n === 1 ? '1 fallo registrado en las automatizaciones en las últimas 24 horas.' : n + ' fallos registrados en las automatizaciones en las últimas 24 horas.',
+      ultimaFalha: 'último fallo', latencia: 'tiempo de respuesta del panel', fonte: 'fuente de los datos', fonteTxt: 'bandeja de entrada, agenda y automatizaciones — leídos en vivo en cada actualización',
+      erroCarregar: 'No pude actualizar ahora. Mostrando los últimos datos.', erroAuth: 'Este enlace no es válido. Pide uno nuevo a Uneven.', carregando: 'Cargando',
+      hoje: 'hoy', amanha: 'mañana', semDados: 'sin datos', nota: 'Números leídos directamente del sistema. Lo que no se midió no se muestra.',
+      seg: 's', naoLidas: (n) => n + ' sin leer', de: { cliente: 'cliente', nos: '' }
+    }
+  };
+  const t = (k, ...a) => { const v = (T[state.lang] || T.pt)[k]; return typeof v === 'function' ? v(...a) : (v == null ? k : v); };
+  const LOCALE = { pt: 'pt-BR', en: 'en-US', es: 'es-US' };
+
+  /* ---------- util ---------- */
+  const $ = (s, r) => (r || document).querySelector(s);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmtN = (n) => n == null ? '—' : new Intl.NumberFormat(LOCALE[state.lang] || 'pt-BR').format(n);
+  const tz = () => (state.data && state.data.fuso) || 'America/New_York';
+  const toDate = (iso) => { if (!iso) return null; const d = new Date(iso); return isNaN(d.getTime()) ? null : d; };
+  const fmt = (iso, opts) => { const d = toDate(iso); if (!d) return ''; try { return new Intl.DateTimeFormat(LOCALE[state.lang], Object.assign({ timeZone: tz() }, opts)).format(d); } catch (e) { return ''; } };
+  const fmtTime = (iso) => fmt(iso, { hour: '2-digit', minute: '2-digit' });
+  const fmtDay = (iso) => fmt(iso, { weekday: 'long', day: 'numeric', month: 'long' });
+  const fmtShort = (iso) => fmt(iso, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const dayKey = (iso) => { const d = toDate(iso); if (!d) return ''; try { return new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: tz() }).format(d); } catch (e) { return ''; } };
+  const relDay = (iso) => { const k = dayKey(iso), today = dayKey(new Date().toISOString()); const tom = dayKey(new Date(Date.now() + 864e5).toISOString()); return k && k === today ? t('hoje') : (k && k === tom ? t('amanha') : ''); };
+  const fmtClock = (d) => { try { return new Intl.DateTimeFormat(LOCALE[state.lang], { hour: '2-digit', minute: '2-digit' }).format(d); } catch (e) { return ''; } };
+  const fmtSeg = (s) => s == null ? '—' : (s < 60 ? Math.round(s * 10) / 10 + ' ' + t('seg') : (s < 3600 ? Math.round(s / 60) + ' min' : Math.round(s / 360) / 10 + ' h'));
+  const initials = (n) => String(n || '').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '#';
+  const delta = (cur, prev, goodUp) => {
+    if (cur == null) return '<span class="un-kpi__delta">' + esc(t('semDados')) + '</span>';
+    if (prev == null || prev === 0) return '<span class="un-kpi__delta">' + esc(t('semBase')) + '</span>';
+    const p = Math.round(((cur - prev) / prev) * 100);
+    const dir = goodUp == null ? '' : (p > 0 ? 'up' : (p < 0 ? 'down' : ''));
+    return '<span class="un-kpi__delta" data-dir="' + dir + '" data-good="' + (goodUp === false ? 'false' : 'true') + '">' + (p > 0 ? '+' : '') + p + '% · ' + esc(t('vsAnterior')) + '</span>';
+  };
+  const kpi = (label, value, sub, foot) => '<div class="un-card un-kpi"><p class="un-label">' + esc(label) + '</p><div class="un-kpi__value">' + value + '</div>' + (sub || '') + (foot ? '<p class="un-kpi__foot">' + foot + '</p>' : '') + '</div>';
+  const statusPill = (c) => {
+    const p = (state.data && state.data.cliente.persona) || 'Bia';
+    if (c.status === 'resolved') return '<span class="un-pill">' + esc(t('stEncerrada')) + '</span>';
+    if (c.status === 'snoozed') return '<span class="un-pill">' + esc(t('stSnoozed')) + '</span>';
+    if (c.status === 'open' && c.humano) return '<span class="un-pill ' + (c.aguardando ? 'un-pill--warn' : 'un-pill--solid') + '">' + esc(t('stComVoce')) + '</span>';
+    return '<span class="un-pill un-pill--ok"><span class="un-dot un-dot--ok"></span>' + esc(t('stComBia', p)) + '</span>';
+  };
+
+  /* ---------- navegação ---------- */
+  const ICONS = {
+    visao: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
+    conversas: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>',
+    agenda: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+    cotacoes: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+    saude: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>'
+  };
+  function views() {
+    const tipo = state.data ? state.data.cliente.tipo : 'agenda';
+    return [
+      { id: 'visao', num: '01' },
+      { id: 'conversas', num: '02' },
+      tipo === 'seguros' ? { id: 'cotacoes', num: '03' } : { id: 'agenda', num: '03' },
+      { id: 'saude', num: '04' }
+    ];
+  }
+  function currentView() { const h = (location.hash || '#/visao').replace('#/', ''); const ok = views().map(v => v.id); return ok.includes(h) ? h : 'visao'; }
+  function renderNav() {
+    const cur = currentView();
+    $('#nav').innerHTML = views().map(v => '<a href="#/' + v.id + '"' + (v.id === cur ? ' aria-current="page"' : '') + '><span class="un-label">' + v.num + '</span>' + ICONS[v.id] + esc(t(v.id)) + '</a>').join('');
+    $('#tabbar').innerHTML = views().map(v => '<a href="#/' + v.id + '"' + (v.id === cur ? ' aria-current="page"' : '') + '>' + ICONS[v.id] + esc(t(v.id)) + '</a>').join('');
+    $('#t-title').textContent = t(cur);
+  }
+
+  /* ---------- controles ---------- */
+  const segRefresh = () => [2, 5, 15].map(m => '<button type="button" data-ref="' + m + '" aria-pressed="' + (state.refreshMin === m) + '">' + m + ' ' + esc(t('min')) + '</button>').join('');
+  const stripMd = (s) => String(s || '').replace(/\*\*|__|`/g, '').replace(/\s+/g, ' ').trim();
+  function renderSegs() {
+    $('#seg-dias').innerHTML = [7, 14, 30].map(d => '<button type="button" data-dias="' + d + '" aria-pressed="' + (state.dias === d) + '"><span class="p-seg-long">' + esc(t('dias', d)) + '</span><span class="p-seg-short">' + d + 'd</span></button>').join('');
+    $('#seg-refresh').innerHTML = segRefresh();
+    $('#s-refresh-label').textContent = t('atualiza');
+    $('#btn-refresh-txt').textContent = t('atualizar');
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-dias]'); if (b) { state.dias = Number(b.dataset.dias); renderSegs(); load(); return; }
+    const r = e.target.closest('button[data-ref]'); if (r) { state.refreshMin = Number(r.dataset.ref); renderSegs(); schedule(); renderView(); return; }
+    if (e.target.closest('#btn-refresh')) { load(); return; }
+    const cp = e.target.closest('[data-copy]'); if (cp) { if (!navigator.clipboard) return; navigator.clipboard.writeText(cp.getAttribute('data-copy')).then(() => { const o = cp.textContent; cp.textContent = t('copiado'); setTimeout(() => cp.textContent = o, 1500); }).catch(() => {}); return; }
+    const row = e.target.closest('tr[data-href]'); if (row && !e.target.closest('a')) { window.open(row.dataset.href, '_blank', 'noopener'); }
+  });
+  window.addEventListener('hashchange', () => { renderNav(); renderView(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && state.proxima && Date.now() >= state.proxima) load(); });
+
+  /* ---------- dados ---------- */
+  async function load() {
+    if (state.loading) return; state.loading = true; setStatus();
+    const t0 = Date.now();
+    try {
+      const url = API + '?cliente=' + encodeURIComponent(CLIENTE) + '&token=' + encodeURIComponent(TOKEN) + '&dias=' + state.dias + '&_=' + t0;
+      const r = await fetch(url, { cache: 'no-store' });
+      if (r.status === 401) { state.erro = 'auth'; state.loading = false; clearTimeout(state.timer); clearInterval(state.tick); state.proxima = null; renderAll(); return; }
+      const j = await r.json();
+      if (!j || !j.ok) throw new Error('resposta inválida');
+      state.data = j; state.erro = null; state.atualizadoEm = new Date(); state.latencia = Date.now() - t0;
+      if (!Q.get('lang') && j.cliente && j.cliente.idioma && T[j.cliente.idioma]) { state.lang = j.cliente.idioma; document.documentElement.lang = state.lang; }
+    } catch (e) { state.erro = state.data ? 'refresh' : 'load'; }
+    state.loading = false;
+    try { renderAll(); } catch (e) { console.error(e); } finally { schedule(); }
+    // o período mudou enquanto carregava? busca de novo
+    if (state.data && state.data.periodo && state.data.periodo.dias !== state.dias) load();
+  }
+  function schedule() {
+    clearTimeout(state.timer); clearInterval(state.tick);
+    state.proxima = Date.now() + state.refreshMin * 60000;
+    state.timer = setTimeout(load, state.refreshMin * 60000);
+    state.tick = setInterval(setStatus, 1000); setStatus();
+  }
+  function setStatus() {
+    const dot = $('#s-dot'), st = $('#s-status'), cd = $('#t-countdown');
+    if (state.loading) { dot.className = 'un-dot'; st.textContent = t('carregando') + '…'; }
+    else if (state.erro === 'auth') { dot.className = 'un-dot un-dot--bad'; st.textContent = t('erroAuth'); }
+    else if (state.erro) { dot.className = 'un-dot un-dot--warn'; st.textContent = t('erroCarregar'); }
+    else if (state.atualizadoEm) { dot.className = 'un-dot un-dot--ok un-dot--live'; st.textContent = t('atualizado') + ' ' + fmtClock(state.atualizadoEm); }
+    if (state.proxima && !state.loading) { const s = Math.max(0, Math.round((state.proxima - Date.now()) / 1000)); cd.textContent = t('em') + ' ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); } else cd.textContent = '';
+  }
+
+  /* ---------- render ---------- */
+  function renderAll() {
+    renderSegs(); renderNav();
+    const d = state.data;
+    if (d) {
+      $('#s-persona').textContent = d.cliente.persona + ' · ' + (d.cliente.tipo === 'seguros' ? t('cotacoes') : t('agenda'));
+      $('#s-nome').textContent = d.cliente.nome;
+      $('#s-sub').textContent = [d.cliente.cidade, d.cliente.tipo_negocio].filter(Boolean).join(' · ');
+      $('#t-persona').textContent = d.cliente.nome;
+    }
+    renderView(); setStatus();
+  }
+  function renderView() {
+    const v = $('#view'), d = state.data;
+    if (state.erro === 'auth') { v.innerHTML = '<div class="un-banner un-banner--bad">' + esc(t('erroAuth')) + '</div>'; return; }
+    if (!d) { v.innerHTML = (state.erro ? '<div class="un-section"><div class="un-banner un-banner--bad">' + esc(t('erroCarregar')) + '</div></div>' : '') + skeleton(); return; }
+    const cur = currentView();
+    const F = d.fontes || {};
+    const fontesFalhas = Object.keys(F).filter(k => F[k] === false);
+    let html = state.erro ? '<div class="un-section"><div class="un-banner">' + esc(t('erroCarregar')) + '</div></div>' : '';
+    if (fontesFalhas.length) html += '<div class="un-section"><div class="un-banner">' + esc(t('fonteFalhou')) + '</div></div>';
+    html += ({ visao: viewVisao, conversas: viewConversas, agenda: viewAgenda, cotacoes: viewCotacoes, saude: viewSaude })[cur](d);
+    html += '<p class="p-note">' + esc(t('nota')) + '</p>';
+    v.innerHTML = html;
+  }
+  function skeleton() {
+    return '<div class="un-section un-grid un-grid--4">' + [1, 2, 3, 4].map(() => '<div class="un-card un-kpi"><p class="un-label un-skel">xxxxxxxx</p><div class="un-kpi__value un-skel">000</div></div>').join('') + '</div><div class="un-card" style="height:220px"></div>';
+  }
+
+  function viewVisao(d) {
+    const k = d.kpis, seg = d.cliente.tipo === 'seguros';
+    let h = '';
+    if (k.aguardando_humano > 0) h += '<div class="un-section"><div class="un-banner"><strong>' + esc(t('esperandoN', k.aguardando_humano)) + '</strong></div></div>';
+    h += '<div class="un-section un-grid un-grid--4">';
+    h += kpi(t('conversasPeriodo'), fmtN(k.conversas), delta(k.conversas, k.conversas_prev, true));
+    h += kpi(t('respondidas'), fmtN(k.respondidas), delta(k.respondidas, k.respondidas_prev, true));
+    if (seg) h += kpi(t('prontas'), fmtN(d.cotacoes ? d.cotacoes.prontas.length : null), '<span class="un-kpi__delta">' + fmtN(d.cotacoes ? d.cotacoes.em_coleta.length : 0) + ' ' + esc(t('emColeta')) + '</span>');
+    else h += kpi(t('agendamentos'), fmtN(d.agenda ? d.agenda.no_periodo : null), '<span class="un-kpi__delta">' + fmtN(d.agenda ? d.agenda.proximos_7d : 0) + ' · ' + esc(t('prox7')) + '</span>');
+    h += kpi(t('transbordos'), fmtN(k.transbordos), delta(k.transbordos, k.transbordos_prev, null));
+    h += '</div>';
+    h += '<div class="un-section un-grid un-grid--4">';
+    h += kpi(t('primeira'), fmtSeg(k.primeira_resposta_seg), delta(k.primeira_resposta_seg, k.primeira_resposta_prev, false));
+    h += kpi(t('recebidas'), fmtN(k.recebidas), delta(k.recebidas, k.recebidas_prev, true));
+    h += kpi(t('resolvidas'), fmtN(k.resolvidas), delta(k.resolvidas, k.resolvidas_prev, true));
+    if (seg) h += kpi(t('comCorretor'), fmtN(d.cotacoes ? d.cotacoes.com_corretor : null), '');
+    else h += kpi(t('avaliacoes'), fmtN(d.agenda ? d.agenda.avaliacoes_pedidas : null), '');
+    h += '</div>';
+    // gráfico + lateral
+    const serie = d.serie || [];
+    const max = Math.max(1, ...serie.map(s => s.v || 0));
+    const todayK = dayKey(new Date().toISOString());
+    const labelDia = (dia) => { try { return new Intl.DateTimeFormat(LOCALE[state.lang], serie.length > 14 ? { day: '2-digit', month: '2-digit', timeZone: 'UTC' } : { day: '2-digit', timeZone: 'UTC' }).format(new Date(dia + 'T12:00:00Z')); } catch (e) { return dia.slice(-2); } };
+    h += '<div class="un-section un-grid un-grid--main">';
+    h += '<div class="un-card"><div class="un-section__head"><p class="un-label">' + esc(t('porDia')) + '</p><span class="un-mono">' + esc(t('dias', d.periodo.dias)) + '</span></div>';
+    if (d.fontes && d.fontes.serie === false) h += '<p class="un-empty">' + esc(t('semDados')) + '</p>';
+    else {
+      h += '<div class="un-bars">' + serie.map(s => '<div style="--v:' + ((s.v || 0) / max).toFixed(3) + '"' + (s.dia === todayK ? ' data-today' : '') + '><i></i><b>' + (s.v || 0) + '</b></div>').join('') + '</div>';
+      h += '<div class="un-bars-x">' + serie.map((s, i) => '<span>' + ((serie.length <= 14 || i % 3 === 0) ? esc(labelDia(s.dia)) : '') + '</span>').join('') + '</div>';
+    }
+    h += '</div>';
+    h += '<div class="un-card">';
+    if (seg) {
+      const pr = (d.cotacoes && d.cotacoes.prontas) || [];
+      h += '<div class="un-section__head"><p class="un-label">' + esc(t('prontasCotar')) + '</p><a class="un-mono" href="#/cotacoes">' + esc(t('abrir')) + ' →</a></div>';
+      h += pr.length ? '<ul class="un-list">' + pr.slice(0, 6).map(c => '<li class="un-item"><span class="un-avatar">' + esc(initials(c.nome)) + '</span><div><div class="un-item__title">' + esc(c.nome) + '</div><div class="un-item__sub">' + esc(c.ramo) + ' · ' + esc(fmtShort(c.atualizado)) + '</div></div><a class="un-btn un-btn--ghost un-btn--sm" href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(t('abrir')) + '</a></li>').join('') + '</ul>' : '<p class="un-empty">' + esc(t('nadaProntas')) + '</p>';
+    } else {
+      const px = (d.agenda && d.agenda.proximos) || [];
+      h += '<div class="un-section__head"><p class="un-label">' + esc(t('proxHorarios')) + '</p><a class="un-mono" href="#/agenda">' + esc(t('abrir')) + ' →</a></div>';
+      h += px.length ? '<ul class="un-list">' + px.slice(0, 6).map(e => '<li class="un-item"><span class="p-time">' + esc(fmtTime(e.quando)) + '</span><div><div class="un-item__title">' + esc(e.servico) + (e.nome ? ' — ' + esc(e.nome) : '') + '</div><div class="un-item__sub">' + esc(relDay(e.quando) || fmtDay(e.quando)) + '</div></div><span></span></li>').join('') + '</ul>' : '<p class="un-empty">' + esc(t('nadaProx')) + '</p>';
+    }
+    h += '</div></div>';
+    if (d.aguardando && d.aguardando.length) {
+      h += '<div class="un-section"><div class="un-card"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('esperando')) + '</p><ul class="un-list">' + d.aguardando.map(c => '<li class="un-item"><span class="un-avatar">' + esc(initials(c.nome)) + '</span><div><div class="un-item__title">' + esc(c.nome) + '</div><div class="un-item__text">' + esc(c.ultima) + '</div></div><div><div class="un-item__side">' + esc(fmtShort(c.quando)) + '</div><a class="un-btn un-btn--sm" style="margin-top:6px" href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(t('abrir')) + '</a></div></li>').join('') + '</ul></div></div>';
+    }
+    return h;
+  }
+
+  function viewConversas(d) {
+    const cs = d.conversas || [];
+    if (d.fontes && d.fontes.conversas === false) return '<div class="un-card"><p class="un-empty">' + esc(t('semDados')) + '</p></div>';
+    if (!cs.length) return '<div class="un-card"><p class="un-empty">' + esc(t('nadaConversas')) + '</p></div>';
+    let h = '<p class="un-mono" style="margin-bottom:var(--un-s3)">' + esc(t('maisRecentes', cs.length)) + '</p><div class="un-card"><table class="un-table"><thead><tr><th>' + esc(t('cliente')) + '</th><th>' + esc(t('status')) + '</th><th class="p-hide-m">' + esc(t('ultima')) + '</th><th class="un-num p-hide-m">' + esc(t('quando')) + '</th><th class="p-hide-m"></th></tr></thead><tbody>';
+    h += cs.map(c => '<tr data-href="' + esc(c.link) + '"><td><div class="un-item__title">' + esc(c.nome) + '</div><div class="un-item__sub">' + esc(c.telefone) + (c.nao_lidas ? ' · ' + esc(t('naoLidas', c.nao_lidas)) : '') + '<span class="p-hide-d"> · ' + esc(fmtShort(c.quando)) + '</span></div><div class="un-item__text p-hide-d">' + esc(stripMd(c.ultima)) + '</div></td><td>' + statusPill(c) + '</td><td class="p-hide-m"><div class="un-item__text">' + (c.privada ? '<span class="un-mono">' + esc(t('notaInterna')) + ' · </span>' : '') + esc(stripMd(c.ultima)) + '</div></td><td class="un-num p-hide-m">' + esc(fmtShort(c.quando)) + '</td><td class="un-num p-hide-m"><a class="un-btn un-btn--ghost un-btn--sm" href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(t('abrir')) + '</a></td></tr>').join('');
+    return h + '</tbody></table></div>';
+  }
+
+  function viewAgenda(d) {
+    const a = d.agenda || { proximos: [], por_servico: [] };
+    let h = '<div class="un-grid un-grid--main">';
+    h += '<div class="un-card"><p class="un-label" style="margin-bottom:var(--un-s4)">' + esc(t('proxHorarios')) + '</p>';
+    if (!a.proximos.length) h += '<p class="un-empty">' + esc(t('nadaProx')) + '</p>';
+    else {
+      const groups = {}; a.proximos.forEach(e => { const k = dayKey(e.quando); (groups[k] = groups[k] || []).push(e); });
+      h += Object.keys(groups).sort().map(k => { const es = groups[k]; const rd = relDay(es[0].quando); return '<div class="p-day"><p class="un-label">' + esc(fmtDay(es[0].quando)) + (rd ? ' · ' + esc(rd) : '') + '</p><ul class="un-list">' + es.map(e => '<li class="un-item"><span class="p-time">' + esc(fmtTime(e.quando)) + '</span><div><div class="un-item__title">' + esc(e.servico) + '</div><div class="un-item__sub">' + esc(e.nome || '') + '</div></div><span></span></li>').join('') + '</ul></div>'; }).join('');
+    }
+    h += '</div><div>';
+    h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('porServico')) + '</p>';
+    const mx = Math.max(1, ...a.por_servico.map(s => s.n));
+    h += a.por_servico.length ? a.por_servico.map(s => '<div class="un-bar-h" style="--v:' + (s.n / mx).toFixed(3) + '"><span>' + esc(s.nome) + '</span><i></i><b>' + s.n + '</b></div>').join('') : '<p class="un-empty">' + esc(t('nada')) + '</p>';
+    h += '</div>';
+    h += kpi(t('avaliacoes'), fmtN(a.avaliacoes_pedidas), '');
+    return h + '</div></div>';
+  }
+
+  function viewCotacoes(d) {
+    const c = d.cotacoes || { prontas: [], em_coleta: [], por_ramo: [] };
+    const card = (q, pronta) => {
+      const val = (v) => (v && typeof v === 'object') ? JSON.stringify(v) : v;
+      const dados = (q.dados && typeof q.dados === 'object') ? q.dados : {};
+      const linhas = Object.entries(dados).map(([k, v]) => '<tr><td>' + esc(k.replace(/_/g, ' ')) + '</td><td>' + esc(val(v)) + '</td></tr>').join('');
+      const texto = Object.entries(dados).map(([k, v]) => k + ': ' + val(v)).join('\n');
+      if (!Array.isArray(q.faltando)) q.faltando = [];
+      return '<div class="un-card" style="margin-bottom:var(--un-s4)"><div class="p-card-head"><div>' + (pronta ? '<span class="un-pill un-pill--solid">' + esc(t('prontaUma')) + '</span>' : '<span class="un-pill">' + esc(t('emColeta')) + '</span>') + ' <span class="un-h3" style="font-size:16px;margin-left:6px">' + esc(q.ramo || '—') + '</span></div><span class="un-mono">' + esc(q.nome) + ' · ' + esc(q.telefone) + ' · ' + esc(q.idioma) + ' · ' + esc(fmtShort(q.atualizado)) + '</span></div>'
+        + '<table class="p-kv">' + (linhas || '<tr><td colspan="2">—</td></tr>') + '</table>'
+        + (q.faltando && q.faltando.length ? '<p class="un-mono" style="margin-top:var(--un-s3);color:var(--un-warn)">' + esc(t('faltando')) + ': ' + esc(q.faltando.join(', ')) + (q.followups ? ' · ' + esc(t('cutucada')) : '') + '</p>' : '')
+        + '<div class="p-card-foot"><a class="un-btn un-btn--sm" href="' + esc(q.link) + '" target="_blank" rel="noopener">' + esc(t('abrirConversa')) + '</a><button type="button" class="un-btn un-btn--ghost un-btn--sm" data-copy="' + esc(texto) + '">' + esc(t('copiar')) + '</button></div></div>';
+    };
+    let h = '<div class="un-grid un-grid--main"><div>';
+    h += '<p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('prontasCotar')) + ' · ' + c.prontas.length + '</p>';
+    h += c.prontas.length ? c.prontas.map(q => card(q, true)).join('') : '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-empty">' + esc(t('nadaProntas')) + '</p></div>';
+    if (c.em_coleta.length) { h += '<p class="un-label" style="margin:var(--un-s6) 0 var(--un-s3)">' + esc(t('emColeta')) + ' · ' + c.em_coleta.length + '</p>' + c.em_coleta.map(q => card(q, false)).join(''); }
+    h += '</div><div>';
+    const mx = Math.max(1, ...c.por_ramo.map(s => s.n));
+    h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('porRamo')) + '</p>' + (c.por_ramo.length ? c.por_ramo.map(s => '<div class="un-bar-h" style="--v:' + (s.n / mx).toFixed(3) + '"><span>' + esc(s.nome) + '</span><i></i><b>' + s.n + '</b></div>').join('') : '<p class="un-empty">' + esc(t('nada')) + '</p>') + '</div>';
+    h += kpi(t('comCorretor'), fmtN(c.com_corretor), '');
+    return h + '</div></div>';
+  }
+
+  function viewSaude(d) {
+    const s = d.saude || {}; const semFonte = !!(d.fontes && d.fontes.execucoes === false); const ok = !semFonte && !s.falhas_24h;
+    let h = '<div class="un-card" style="margin-bottom:var(--un-s4)"><div class="p-hero"><span class="un-dot ' + (semFonte ? '' : (ok ? 'un-dot--ok un-dot--live' : 'un-dot--warn')) + '"></span><h2 class="un-h2">' + esc(semFonte ? t('sistemaSemDados') : (ok ? t('sistemaOk') : t('sistemaFalhas', s.falhas_24h))) + '</h2></div></div>';
+    h += '<div class="un-grid un-grid--3">';
+    h += kpi(t('ultimaFalha'), s.ultima_falha ? esc(fmtShort(s.ultima_falha)) : '—', '');
+    h += kpi(t('latencia'), state.latencia != null ? fmtN(state.latencia) + '<small>ms</small>' : '—', '');
+    h += kpi(t('atualizado'), state.atualizadoEm ? esc(fmtClock(state.atualizadoEm)) : '—', '<span class="un-kpi__delta">' + esc(t('atualiza')) + '</span>', '<span class="un-seg" role="group">' + segRefresh() + '</span>');
+    h += '</div>';
+    h += '<div class="un-card" style="margin-top:var(--un-s4)"><p class="un-label">' + esc(t('fonte')) + '</p><p class="un-body" style="margin-top:var(--un-s2)">' + esc(t('fonteTxt')) + '</p></div>';
+    if (!STANDALONE && location.protocol !== 'file:') h += '<div class="un-card" style="margin-top:var(--un-s4)"><p class="un-label">' + esc(t('instalar')) + '</p><p class="un-body" style="margin-top:var(--un-s2)">' + esc(t('instalarTxt')) + '</p></div>';
+    return h;
+  }
+
+  /* ---------- start ---------- */
+  renderSegs(); renderNav(); renderView();
+  if (!CLIENTE || !TOKEN) { state.erro = 'auth'; renderAll(); } else load();
+})();
+</script>
+</body>
+</html>
