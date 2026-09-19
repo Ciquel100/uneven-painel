@@ -318,6 +318,8 @@
     const fontesFalhas = Object.keys(F).filter(k => F[k] === false);
     let html = state.erro ? '<div class="un-section"><div class="un-banner">' + esc(t('erroCarregar')) + '</div></div>' : '';
     if (fontesFalhas.length) html += '<div class="un-section"><div class="un-banner">' + esc(t('fonteFalhou')) + '</div></div>';
+    // Regra de honestidade (UNEVEN-CONTEXTO §5): cliente de demonstração aparece rotulado
+    if (/-demo$/.test(d.cliente.id) || d.cliente.id === 'bella-miami' || /\(demo\)/i.test(d.cliente.nome)) html += '<p class="un-label" style="margin-bottom:var(--un-s4)">EXAMPLE · FICTIONAL BUSINESS AND NAMES · REAL LAYOUT</p>';
     html += ({ visao: viewVisao, conversas: viewConversas, agenda: viewAgenda, cotacoes: viewCotacoes, saude: viewSaude })[cur](d);
     html += '<p class="p-note">' + esc(t('nota')) + '</p>';
     v.innerHTML = html;
