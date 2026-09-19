@@ -315,7 +315,7 @@
     if (sc) {
       sc.hidden = lista.length < 2;
       sc.innerHTML = lista.length < 2 ? '' : lista.map(c => {
-        const nome = (state.data && state.data.cliente && state.data.cliente.id === c.cliente_id && state.data.cliente.nome) || c.cliente_id;
+        const nome = (state.data && state.data.cliente && state.data.cliente.id === c.cliente_id && state.data.cliente.nome) || c.nome || c.cliente_id;
         return '<button type="button" data-cliente="' + esc(c.cliente_id) + '" aria-pressed="' + (CLIENTE === c.cliente_id) + '">' + esc(nome) + '</button>';
       }).join('');
     }
@@ -352,6 +352,11 @@
       const j = await r.json();
       if (!j || !j.ok) throw new Error('resposta inválida');
       state.data = j; state.erro = null; state.atualizadoEm = new Date(); state.latencia = Date.now() - t0;
+      // guarda o nome bonito de cada painel para o seletor não mostrar o id cru
+      if (SESSAO && j.cliente && j.cliente.id) {
+        const alvo = (SESSAO.clientes || []).find(c => c.cliente_id === j.cliente.id);
+        if (alvo && alvo.nome !== j.cliente.nome) { alvo.nome = j.cliente.nome; gravarSessao(SESSAO); }
+      }
       if (!Q.get('lang') && j.cliente && j.cliente.idioma && T[j.cliente.idioma]) { state.lang = j.cliente.idioma; document.documentElement.lang = state.lang; }
     } catch (e) { state.erro = state.data ? 'refresh' : 'load'; }
     state.loading = false;
