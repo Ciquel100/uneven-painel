@@ -140,6 +140,7 @@
       sistemaOk: 'Nenhuma falha registrada nas automações nas últimas 24 horas.', sistemaFalhas: (n) => n === 1 ? '1 falha registrada nas automações nas últimas 24 horas.' : n + ' falhas registradas nas automações nas últimas 24 horas.',
       ultimaFalha: 'última falha', latencia: 'tempo de resposta do painel', fonte: 'fonte dos dados', fonteTxt: 'caixa de entrada, agenda e automações — lidos ao vivo a cada atualização',
       erroCarregar: 'Não consegui atualizar agora. Mostrando os últimos dados.', erroAuth: 'Este link não é válido. Peça um novo para a Uneven.', carregando: 'Carregando',
+      semLink: 'Abra pelo link completo que a Uneven enviou — ele tem o seu acesso no fim do endereço. Depois da primeira vez, este aparelho lembra e você pode abrir direto.', semLinkCurto: 'falta o link de acesso',
       hoje: 'hoje', amanha: 'amanhã', semDados: 'sem dados', nota: 'Números lidos direto do sistema. O que não foi medido não aparece.',
       seg: 's', naoLidas: (n) => n + ' não lida' + (n === 1 ? '' : 's'), de: { cliente: 'cliente', nos: '' }
     },
@@ -161,6 +162,7 @@
       sistemaOk: 'No failures recorded in the automations in the last 24 hours.', sistemaFalhas: (n) => n === 1 ? '1 failure recorded in the automations in the last 24 hours.' : n + ' failures recorded in the automations in the last 24 hours.',
       ultimaFalha: 'last failure', latencia: 'dashboard response time', fonte: 'data source', fonteTxt: 'inbox, calendar and automations — read live on every refresh',
       erroCarregar: "Couldn't refresh right now. Showing the latest data.", erroAuth: 'This link is not valid. Ask Uneven for a new one.', carregando: 'Loading',
+      semLink: 'Open the full link Uneven sent you — your access is at the end of the address. After the first time, this device remembers it and you can open it directly.', semLinkCurto: 'access link missing',
       hoje: 'today', amanha: 'tomorrow', semDados: 'no data', nota: 'Numbers are read straight from the system. What was not measured is not shown.',
       seg: 's', naoLidas: (n) => n + ' unread', de: { cliente: 'customer', nos: '' }
     },
@@ -182,6 +184,7 @@
       sistemaOk: 'Ningún fallo registrado en las automatizaciones en las últimas 24 horas.', sistemaFalhas: (n) => n === 1 ? '1 fallo registrado en las automatizaciones en las últimas 24 horas.' : n + ' fallos registrados en las automatizaciones en las últimas 24 horas.',
       ultimaFalha: 'último fallo', latencia: 'tiempo de respuesta del panel', fonte: 'fuente de los datos', fonteTxt: 'bandeja de entrada, agenda y automatizaciones — leídos en vivo en cada actualización',
       erroCarregar: 'No pude actualizar ahora. Mostrando los últimos datos.', erroAuth: 'Este enlace no es válido. Pide uno nuevo a Uneven.', carregando: 'Cargando',
+      semLink: 'Abre el enlace completo que Uneven te envió — tu acceso está al final de la dirección. Después de la primera vez, este dispositivo lo recuerda y puedes abrirlo directamente.', semLinkCurto: 'falta el enlace de acceso',
       hoje: 'hoy', amanha: 'mañana', semDados: 'sin datos', nota: 'Números leídos directamente del sistema. Lo que no se midió no se muestra.',
       seg: 's', naoLidas: (n) => n + ' sin leer', de: { cliente: 'cliente', nos: '' }
     }
@@ -291,6 +294,7 @@
   function setStatus() {
     const dot = $('#s-dot'), st = $('#s-status'), cd = $('#t-countdown');
     if (state.loading) { dot.className = 'un-dot'; st.textContent = t('carregando') + '…'; }
+    else if (state.erro === 'semLink') { dot.className = 'un-dot'; st.textContent = t('semLinkCurto'); }
     else if (state.erro === 'auth') { dot.className = 'un-dot un-dot--bad'; st.textContent = t('erroAuth'); }
     else if (state.erro) { dot.className = 'un-dot un-dot--warn'; st.textContent = t('erroCarregar'); }
     else if (state.atualizadoEm) { dot.className = 'un-dot un-dot--ok un-dot--live'; st.textContent = t('atualizado') + ' ' + fmtClock(state.atualizadoEm); }
@@ -311,6 +315,7 @@
   }
   function renderView() {
     const v = $('#view'), d = state.data;
+    if (state.erro === 'semLink') { v.innerHTML = '<div class="un-banner">' + esc(t('semLink')) + '</div>'; return; }
     if (state.erro === 'auth') { v.innerHTML = '<div class="un-banner un-banner--bad">' + esc(t('erroAuth')) + '</div>'; return; }
     if (!d) { v.innerHTML = (state.erro ? '<div class="un-section"><div class="un-banner un-banner--bad">' + esc(t('erroCarregar')) + '</div></div>' : '') + skeleton(); return; }
     const cur = currentView();
@@ -442,7 +447,8 @@
 
   /* ---------- start ---------- */
   renderSegs(); renderNav(); renderView();
-  if (!CLIENTE || !TOKEN) { state.erro = 'auth'; renderAll(); } else load();
+  // Sem acesso nenhum (abriu o domínio puro) é diferente de acesso recusado pela API.
+  if (!CLIENTE || !TOKEN) { state.erro = 'semLink'; renderAll(); } else load();
 })();
 </script>
 </body>
