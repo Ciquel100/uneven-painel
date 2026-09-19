@@ -106,7 +106,13 @@
     : '/webhook/painel-dados';
   // Acesso: vem na URL na primeira vez; fora do n8n (origem normal) fica guardado no aparelho,
   // para o app instalado abrir sem o link. ?sair=1 apaga. No n8n (origem opaca) o storage não existe — try/catch.
-  let CLIENTE = Q.get('cliente') || '', TOKEN = Q.get('token') || '';
+  // O acesso pode vir na query (?cliente=&token=) ou depois do # — o fragmento não vai
+  // para o servidor nem para os logs. Guardar no aparelho é conveniência, nunca a única via:
+  // no iPhone o Safari apaga o storage depois de ~7 dias sem visita, e o ícone da tela de
+  // início abre com storage próprio. Por isso existe a tela de colar o link.
+  const H = new URLSearchParams(String(location.hash || '').replace(/^#\/?/, ''));
+  let CLIENTE = Q.get('cliente') || H.get('cliente') || '', TOKEN = Q.get('token') || H.get('token') || '';
+  if (H.get('cliente') && H.get('token')) { try { history.replaceState(null, '', location.pathname + location.search + '#/visao'); } catch (e) {} }
   try {
     if (Q.get('sair')) { localStorage.removeItem('un-painel'); CLIENTE = ''; TOKEN = ''; }
     else if (CLIENTE && TOKEN) localStorage.setItem('un-painel', JSON.stringify({ cliente: CLIENTE, token: TOKEN }));
@@ -140,7 +146,9 @@
       sistemaOk: 'Nenhuma falha registrada nas automações nas últimas 24 horas.', sistemaFalhas: (n) => n === 1 ? '1 falha registrada nas automações nas últimas 24 horas.' : n + ' falhas registradas nas automações nas últimas 24 horas.',
       ultimaFalha: 'última falha', latencia: 'tempo de resposta do painel', fonte: 'fonte dos dados', fonteTxt: 'caixa de entrada, agenda e automações — lidos ao vivo a cada atualização',
       erroCarregar: 'Não consegui atualizar agora. Mostrando os últimos dados.', erroAuth: 'Este link não é válido. Peça um novo para a Uneven.', carregando: 'Carregando',
-      semLink: 'Abra pelo link completo que a Uneven enviou — ele tem o seu acesso no fim do endereço. Depois da primeira vez, este aparelho lembra e você pode abrir direto.', semLinkCurto: 'falta o link de acesso',
+      semLink: 'O seu acesso fica no fim do link que a Uneven enviou. Cole o link aqui embaixo e pronto — depois disso este aparelho lembra.', semLinkCurto: 'falta o link de acesso',
+      colarPh: 'cole aqui o link que a Uneven enviou', colarTit: 'Acesso', entrar: 'Entrar', colarErro: 'Esse endereço não traz o acesso. Copie de novo, inteiro, da mensagem da Uneven.',
+      dicaIcone: 'Para deixar o ícone no celular: abra o link completo primeiro e só então use "Adicionar à tela de início".',
       hoje: 'hoje', amanha: 'amanhã', semDados: 'sem dados', nota: 'Números lidos direto do sistema. O que não foi medido não aparece.',
       seg: 's', naoLidas: (n) => n + ' não lida' + (n === 1 ? '' : 's'), de: { cliente: 'cliente', nos: '' }
     },
@@ -162,7 +170,9 @@
       sistemaOk: 'No failures recorded in the automations in the last 24 hours.', sistemaFalhas: (n) => n === 1 ? '1 failure recorded in the automations in the last 24 hours.' : n + ' failures recorded in the automations in the last 24 hours.',
       ultimaFalha: 'last failure', latencia: 'dashboard response time', fonte: 'data source', fonteTxt: 'inbox, calendar and automations — read live on every refresh',
       erroCarregar: "Couldn't refresh right now. Showing the latest data.", erroAuth: 'This link is not valid. Ask Uneven for a new one.', carregando: 'Loading',
-      semLink: 'Open the full link Uneven sent you — your access is at the end of the address. After the first time, this device remembers it and you can open it directly.', semLinkCurto: 'access link missing',
+      semLink: 'Your access is at the end of the link Uneven sent you. Paste that link below — after that, this device remembers it.', semLinkCurto: 'access link missing',
+      colarPh: 'paste the link Uneven sent you', colarTit: 'Access', entrar: 'Enter', colarErro: 'That address has no access in it. Copy the whole link again from the Uneven message.',
+      dicaIcone: 'To keep the icon on your phone: open the full link first, then use "Add to Home Screen".',
       hoje: 'today', amanha: 'tomorrow', semDados: 'no data', nota: 'Numbers are read straight from the system. What was not measured is not shown.',
       seg: 's', naoLidas: (n) => n + ' unread', de: { cliente: 'customer', nos: '' }
     },
@@ -184,7 +194,9 @@
       sistemaOk: 'Ningún fallo registrado en las automatizaciones en las últimas 24 horas.', sistemaFalhas: (n) => n === 1 ? '1 fallo registrado en las automatizaciones en las últimas 24 horas.' : n + ' fallos registrados en las automatizaciones en las últimas 24 horas.',
       ultimaFalha: 'último fallo', latencia: 'tiempo de respuesta del panel', fonte: 'fuente de los datos', fonteTxt: 'bandeja de entrada, agenda y automatizaciones — leídos en vivo en cada actualización',
       erroCarregar: 'No pude actualizar ahora. Mostrando los últimos datos.', erroAuth: 'Este enlace no es válido. Pide uno nuevo a Uneven.', carregando: 'Cargando',
-      semLink: 'Abre el enlace completo que Uneven te envió — tu acceso está al final de la dirección. Después de la primera vez, este dispositivo lo recuerda y puedes abrirlo directamente.', semLinkCurto: 'falta el enlace de acceso',
+      semLink: 'Tu acceso está al final del enlace que Uneven te envió. Pegá el enlace acá abajo — después de eso este dispositivo lo recuerda.', semLinkCurto: 'falta el enlace de acceso',
+      colarPh: 'pegá acá el enlace que Uneven te envió', colarTit: 'Acceso', entrar: 'Entrar', colarErro: 'Esa dirección no trae el acceso. Copiá de nuevo el enlace entero del mensaje de Uneven.',
+      dicaIcone: 'Para dejar el ícono en el celular: abrí primero el enlace completo y recién ahí usá "Agregar a inicio".',
       hoje: 'hoy', amanha: 'mañana', semDados: 'sin datos', nota: 'Números leídos directamente del sistema. Lo que no se midió no se muestra.',
       seg: 's', naoLidas: (n) => n + ' sin leer', de: { cliente: 'cliente', nos: '' }
     }
@@ -301,6 +313,40 @@
     if (state.proxima && !state.loading) { const s = Math.max(0, Math.round((state.proxima - Date.now()) / 1000)); cd.textContent = t('em') + ' ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); } else cd.textContent = '';
   }
 
+  /* ---------- sem acesso: colar o link ---------- */
+  // Nunca deixar o dono numa tela sem saída: o storage do aparelho pode ter sido apagado
+  // (iPhone apaga depois de ~7 dias) ou o ícone pode ter aberto sem os parâmetros.
+  function telaSemLink() {
+    return '<div class="un-section"><div class="un-banner">' + esc(t('semLink')) + '</div>'
+      + '<div class="un-card" style="margin-top:var(--un-s4)">'
+      + '<label class="un-label" for="lk">' + esc(t('colarTit')) + '</label>'
+      + '<div style="display:flex;gap:var(--un-s2);margin-top:var(--un-s2);flex-wrap:wrap">'
+      + '<input id="lk" class="un-input" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1 1 220px" placeholder="' + esc(t('colarPh')) + '">'
+      + '<button id="lk-ok" class="un-btn" type="button">' + esc(t('entrar')) + '</button>'
+      + '</div><p id="lk-erro" class="un-mono" style="margin-top:var(--un-s2);display:none"></p>'
+      + '<p class="un-body" style="margin-top:var(--un-s4)">' + esc(t('dicaIcone')) + '</p>'
+      + '</div></div>';
+  }
+  function ligarSemLink() {
+    const inp = $('#lk'), btn = $('#lk-ok'), err = $('#lk-erro');
+    if (!inp || !btn) return;
+    const tentar = () => { if (!entrarComLink(inp.value)) { err.textContent = t('colarErro'); err.style.display = ''; inp.focus(); } };
+    btn.addEventListener('click', tentar);
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') tentar(); });
+  }
+  function entrarComLink(txt) {
+    const raw = String(txt || '').trim();
+    const mc = raw.match(/[?#&]cliente=([^&\s#]+)/i), mt = raw.match(/[?#&]token=([^&\s#]+)/i);
+    if (!mc || !mt) return false;
+    let c, k;
+    try { c = decodeURIComponent(mc[1]); k = decodeURIComponent(mt[1]); } catch (e) { c = mc[1]; k = mt[1]; }
+    if (!c || !k) return false;
+    CLIENTE = c; TOKEN = k;
+    try { localStorage.setItem('un-painel', JSON.stringify({ cliente: c, token: k })); } catch (e) {}
+    try { history.replaceState(null, '', location.pathname + '?cliente=' + encodeURIComponent(c) + '&token=' + encodeURIComponent(k) + '#/visao'); } catch (e) {}
+    state.erro = null; renderAll(); load(); return true;
+  }
+
   /* ---------- render ---------- */
   function renderAll() {
     renderSegs(); renderNav();
@@ -315,7 +361,7 @@
   }
   function renderView() {
     const v = $('#view'), d = state.data;
-    if (state.erro === 'semLink') { v.innerHTML = '<div class="un-banner">' + esc(t('semLink')) + '</div>'; return; }
+    if (state.erro === 'semLink') { v.innerHTML = telaSemLink(); ligarSemLink(); return; }
     if (state.erro === 'auth') { v.innerHTML = '<div class="un-banner un-banner--bad">' + esc(t('erroAuth')) + '</div>'; return; }
     if (!d) { v.innerHTML = (state.erro ? '<div class="un-section"><div class="un-banner un-banner--bad">' + esc(t('erroCarregar')) + '</div></div>' : '') + skeleton(); return; }
     const cur = currentView();
