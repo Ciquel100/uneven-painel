@@ -245,7 +245,7 @@
       stComBia: (p) => 'com ' + p, stComVoce: 'com você', stEncerrada: 'encerrada', stSnoozed: 'adiada', notaInterna: 'nota interna',
       porServico: 'Por serviço', avaliacoes: 'pedidos de avaliação enviados', porRamo: 'Por ramo', faltando: 'Faltando', cutucada: 'lembrete enviado',
       sistemaOk: 'Nenhuma falha registrada nas automações nas últimas 24 horas.', sistemaFalhas: (n) => n === 1 ? '1 falha registrada nas automações nas últimas 24 horas.' : n + ' falhas registradas nas automações nas últimas 24 horas.',
-      ultimaFalha: 'última falha', latencia: 'tempo de resposta do painel', fonte: 'fonte dos dados', fonteTxt: 'caixa de entrada, agenda e automações — lidos ao vivo a cada atualização',
+      ultimaFalha: 'última falha', fonte: 'fonte dos dados', fonteTxt: 'caixa de entrada, agenda e automações — lidos ao vivo a cada atualização',
       erroCarregar: 'Não consegui atualizar agora. Mostrando os últimos dados.', erroAuth: 'Este link não é válido. Peça um novo para a Uneven.', carregando: 'Carregando',
       semLink: 'O seu acesso fica no fim do link que a Uneven enviou. Cole o link aqui embaixo e pronto — depois disso este aparelho lembra.', semLinkCurto: 'falta o link de acesso',
       colarPh: 'cole aqui o link que a Uneven enviou', colarTit: 'Acesso', entrar: 'Entrar', colarErro: 'Esse endereço não traz o acesso. Copie de novo, inteiro, da mensagem da Uneven.',
@@ -278,7 +278,7 @@
       stComBia: (p) => 'with ' + p, stComVoce: 'with you', stEncerrada: 'closed', stSnoozed: 'snoozed', notaInterna: 'internal note',
       porServico: 'By service', avaliacoes: 'review requests sent', porRamo: 'By line', faltando: 'Missing', cutucada: 'reminder sent',
       sistemaOk: 'No failures recorded in the automations in the last 24 hours.', sistemaFalhas: (n) => n === 1 ? '1 failure recorded in the automations in the last 24 hours.' : n + ' failures recorded in the automations in the last 24 hours.',
-      ultimaFalha: 'last failure', latencia: 'dashboard response time', fonte: 'data source', fonteTxt: 'inbox, calendar and automations — read live on every refresh',
+      ultimaFalha: 'last failure', fonte: 'data source', fonteTxt: 'inbox, calendar and automations — read live on every refresh',
       erroCarregar: "Couldn't refresh right now. Showing the latest data.", erroAuth: 'This link is not valid. Ask Uneven for a new one.', carregando: 'Loading',
       semLink: 'Your access is at the end of the link Uneven sent you. Paste that link below — after that, this device remembers it.', semLinkCurto: 'access link missing',
       colarPh: 'paste the link Uneven sent you', colarTit: 'Access', entrar: 'Enter', colarErro: 'That address has no access in it. Copy the whole link again from the Uneven message.',
@@ -311,7 +311,7 @@
       stComBia: (p) => 'con ' + p, stComVoce: 'contigo', stEncerrada: 'cerrada', stSnoozed: 'pospuesta', notaInterna: 'nota interna',
       porServico: 'Por servicio', avaliacoes: 'solicitudes de reseña enviadas', porRamo: 'Por ramo', faltando: 'Falta', cutucada: 'recordatorio enviado',
       sistemaOk: 'Ningún fallo registrado en las automatizaciones en las últimas 24 horas.', sistemaFalhas: (n) => n === 1 ? '1 fallo registrado en las automatizaciones en las últimas 24 horas.' : n + ' fallos registrados en las automatizaciones en las últimas 24 horas.',
-      ultimaFalha: 'último fallo', latencia: 'tiempo de respuesta del panel', fonte: 'fuente de los datos', fonteTxt: 'bandeja de entrada, agenda y automatizaciones — leídos en vivo en cada actualización',
+      ultimaFalha: 'último fallo', fonte: 'fuente de los datos', fonteTxt: 'bandeja de entrada, agenda y automatizaciones — leídos en vivo en cada actualización',
       erroCarregar: 'No pude actualizar ahora. Mostrando los últimos datos.', erroAuth: 'Este enlace no es válido. Pide uno nuevo a Uneven.', carregando: 'Cargando',
       semLink: 'Tu acceso está al final del enlace que Uneven te envió. Pegá el enlace acá abajo — después de eso este dispositivo lo recuerda.', semLinkCurto: 'falta el enlace de acceso',
       colarPh: 'pegá acá el enlace que Uneven te envió', colarTit: 'Acceso', entrar: 'Entrar', colarErro: 'Esa dirección no trae el acceso. Copiá de nuevo el enlace entero del mensaje de Uneven.',
@@ -897,7 +897,6 @@
         h += linha('media', esc(t('cancelouHoje', i.n)), btnHash('#/agenda', t('verAgenda')));
       } else if (i.tipo === 'cotacao_parada') {
         h += linha('alta', esc(t('cotacaoParada', i.n)), btnHash('#/cotacoes', t('verCotacoes')));
-      } else if (i.tipo === 'avaliacao') {
       }
     }
     return h + '</div>';
