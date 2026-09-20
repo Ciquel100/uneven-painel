@@ -354,6 +354,13 @@
       avaliacoesTit: 'Avaliações no Google', notaGoogle: 'nota no Google', semPerfil: 'Perfil do Google ainda não conectado. Quando conectar, a nota e as avaliações novas aparecem aqui.',
       agendaIndisponivel: (m) => 'Agenda indisponível: ' + m + '.',
       avaliacoesParcial: 'O Google devolve só as 5 mais recentes por aqui.',
+      medianaFrase: (t, n) => 'metade das pessoas recebeu resposta em menos de ' + t + ' (' + n + (n === 1 ? ' conversa' : ' conversas') + ')',
+      mediaTb: (t) => 'média: ' + t,
+      semMediana: 'ainda sem conversa respondida no período',
+      vsDatas: (de, ate) => 'vs. ' + de + ' a ' + ate,
+      lembreteSemResposta: (n) => n === 1 ? '1 lembrete de amanhã ainda sem resposta' : n + ' lembretes de amanhã ainda sem resposta',
+      confirmados: 'confirmaram a véspera', lembretesTit: 'Confirmação da véspera',
+      tempoCorretor: 'o corretor leva', tempoCorretorSub: (n) => 'mediana de ' + n + (n === 1 ? ' cotação marcada' : ' cotações marcadas'),
       mvFonteNaoRespondeu: 'A fonte não respondeu agora. Tente daqui a pouco.',
       mvSemPlaceId: 'Perfil do Google ainda não conectado. Quando conectar, a nota e as avaliações aparecem aqui.',
       mvAindaNaoLido: 'Perfil conectado. A primeira leitura sai na próxima madrugada.',
@@ -392,6 +399,13 @@
       avaliacoesTit: 'Google reviews', notaGoogle: 'Google rating', semPerfil: 'Google profile not connected yet. Once connected, your rating and new reviews show here.',
       agendaIndisponivel: (m) => 'Schedule unavailable: ' + m + '.',
       avaliacoesParcial: 'Google only returns the 5 most recent here.',
+      medianaFrase: (t, n) => 'half of your customers got an answer in under ' + t + ' (' + n + (n === 1 ? ' conversation' : ' conversations') + ')',
+      mediaTb: (t) => 'average: ' + t,
+      semMediana: 'no answered conversation in this period yet',
+      vsDatas: (de, ate) => 'vs. ' + de + ' to ' + ate,
+      lembreteSemResposta: (n) => n === 1 ? "1 reminder for tomorrow still unanswered" : n + ' reminders for tomorrow still unanswered',
+      confirmados: 'confirmed the reminder', lembretesTit: 'Next-day confirmation',
+      tempoCorretor: 'the broker takes', tempoCorretorSub: (n) => 'median of ' + n + (n === 1 ? ' marked quote' : ' marked quotes'),
       mvFonteNaoRespondeu: 'The source did not answer just now. Try again shortly.',
       mvSemPlaceId: 'Google profile not connected yet. Once it is, the rating and reviews show up here.',
       mvAindaNaoLido: 'Profile connected. First reading comes overnight.',
@@ -430,6 +444,13 @@
       avaliacoesTit: 'Reseñas en Google', notaGoogle: 'nota en Google', semPerfil: 'Perfil de Google aún no conectado. Cuando lo conectes, la nota y las reseñas nuevas aparecen acá.',
       agendaIndisponivel: (m) => 'Agenda no disponible: ' + m + '.',
       avaliacoesParcial: 'Google solo devuelve las 5 más recientes por aquí.',
+      medianaFrase: (t, n) => 'la mitad de las personas recibió respuesta en menos de ' + t + ' (' + n + (n === 1 ? ' conversación' : ' conversaciones') + ')',
+      mediaTb: (t) => 'promedio: ' + t,
+      semMediana: 'aún sin conversación respondida en el período',
+      vsDatas: (de, ate) => 'vs. ' + de + ' a ' + ate,
+      lembreteSemResposta: (n) => n === 1 ? '1 recordatorio de mañana aún sin respuesta' : n + ' recordatorios de mañana aún sin respuesta',
+      confirmados: 'confirmaron la víspera', lembretesTit: 'Confirmación de la víspera',
+      tempoCorretor: 'el corredor tarda', tempoCorretorSub: (n) => 'mediana de ' + n + (n === 1 ? ' cotización marcada' : ' cotizaciones marcadas'),
       mvFonteNaoRespondeu: 'La fuente no respondió ahora. Inténtalo en un rato.',
       mvSemPlaceId: 'Perfil de Google aún no conectado. Cuando se conecte, la nota y las reseñas aparecen aquí.',
       mvAindaNaoLido: 'Perfil conectado. La primera lectura sale de madrugada.',
@@ -487,12 +508,20 @@
   const fmtClock = (d) => { try { return new Intl.DateTimeFormat(LOCALE[state.lang], { hour: '2-digit', minute: '2-digit' }).format(d); } catch (e) { return ''; } };
   const fmtSeg = (s) => s == null ? '—' : (s < 60 ? Math.round(s * 10) / 10 + ' ' + t('seg') : (s < 3600 ? Math.round(s / 60) + ' min' : Math.round(s / 360) / 10 + ' h'));
   const initials = (n) => String(n || '').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '#';
+  const fmtDia = (iso) => fmt(iso, { day: '2-digit', month: 'short' });
+  // "vs. 7 a 13 de set" diz mais que "vs. período anterior" — e deixa o número conferível.
+  const rotuloAnterior = () => {
+    const p = state.data && state.data.periodo;
+    if (!p || !p.prev_ini || !p.prev_fim) return t('vsAnterior');
+    return t('vsDatas', fmtDia(p.prev_ini), fmtDia(p.prev_fim));
+  };
+
   const delta = (cur, prev, goodUp) => {
     if (cur == null) return '<span class="un-kpi__delta">' + esc(t('semDados')) + '</span>';
     if (prev == null || prev === 0) return '<span class="un-kpi__delta">' + esc(t('semBase')) + '</span>';
     const p = Math.round(((cur - prev) / prev) * 100);
     const dir = goodUp == null ? '' : (p > 0 ? 'up' : (p < 0 ? 'down' : ''));
-    return '<span class="un-kpi__delta" data-dir="' + dir + '" data-good="' + (goodUp === false ? 'false' : 'true') + '">' + (p > 0 ? '+' : '') + p + '% · ' + esc(t('vsAnterior')) + '</span>';
+    return '<span class="un-kpi__delta" data-dir="' + dir + '" data-good="' + (goodUp === false ? 'false' : 'true') + '">' + (p > 0 ? '+' : '') + p + '% · ' + esc(rotuloAnterior()) + '</span>';
   };
   const kpi = (label, value, sub, foot) => '<div class="un-card un-kpi"><p class="un-label">' + esc(label) + '</p><div class="un-kpi__value">' + value + '</div>' + (sub || '') + (foot ? '<p class="un-kpi__foot">' + foot + '</p>' : '') + '</div>';
   const statusPill = (c) => {
@@ -895,6 +924,8 @@
         h += linha('baixa', '<strong>' + esc(fmtTime(i.quando)) + '</strong> — ' + esc(i.servico || '') + (i.nome ? ' · ' + esc(i.nome) : ''), btnHash('#/agenda', t('verAgenda')));
       } else if (i.tipo === 'cancelamento') {
         h += linha('media', esc(t('cancelouHoje', i.n)), btnHash('#/agenda', t('verAgenda')));
+      } else if (i.tipo === 'lembrete') {
+        h += linha('media', esc(t('lembreteSemResposta', i.n)), btnHash('#/agenda', t('verAgenda')));
       } else if (i.tipo === 'cotacao_parada') {
         h += linha('alta', esc(t('cotacaoParada', i.n)), btnHash('#/cotacoes', t('verCotacoes')));
       }
@@ -925,7 +956,10 @@
     h += '<div class="un-section un-grid un-grid--4">';
     h += kpi(t('conversasPeriodo'), fmtN(k.conversas), delta(k.conversas, k.conversas_prev, true));
     h += kpi(t('transbordos'), fmtN(k.transbordos), delta(k.transbordos, k.transbordos_prev, false));
-    h += kpi(t('primeira'), fmtSeg(k.primeira_resposta_seg), delta(k.primeira_resposta_seg, k.primeira_resposta_prev, false));
+    h += kpi(t('primeira'), fmtSeg(k.primeira_resposta_mediana != null ? k.primeira_resposta_mediana : k.primeira_resposta_seg),
+      k.primeira_resposta_mediana != null
+        ? '<span class="un-kpi__delta">' + esc(t('mediaTb', fmtSeg(k.primeira_resposta_seg))) + '</span>'
+        : delta(k.primeira_resposta_seg, k.primeira_resposta_prev, false));
     if (seg) h += kpi(t('comCorretor'), fmtN(d.cotacoes ? d.cotacoes.com_corretor : null), '');
     else h += kpi(t('noPeriodoLabel'), fmtN(a.disponivel ? a.no_periodo : null), '<span class="un-kpi__delta">' + fmtN(a.disponivel ? a.proximos_7d : null) + ' · ' + esc(t('prox7')) + '</span>');
     h += '</div>';
@@ -935,6 +969,10 @@
     if (d.novos) h += kpi(t('novosLabel'), fmtN(d.novos.novos), '<span class="un-kpi__delta">' + fmtN(d.novos.recorrentes) + ' ' + esc(t('recorrentesLabel')) + '</span>');
     if (!seg && a.disponivel && a.ocupacao && a.ocupacao.pct != null) h += kpi(t('ocupacao'), a.ocupacao.pct + '<small>%</small>', '<span class="un-kpi__delta">' + esc(t('ocupacaoSub', a.ocupacao.horas_ocupadas, a.ocupacao.horas_abertas)) + '</span>');
     if (!seg && a.disponivel) h += kpi(t('avaliacoes'), fmtN(a.avaliacoes_pedidas), '');
+    if (seg && d.cotacoes && d.cotacoes.tempo_do_corretor && d.cotacoes.tempo_do_corretor.mediana_h != null) {
+      h += kpi(t('tempoCorretor'), d.cotacoes.tempo_do_corretor.mediana_h + '<small> h</small>',
+        '<span class="un-kpi__delta">' + esc(t('tempoCorretorSub', d.cotacoes.tempo_do_corretor.n)) + '</span>');
+    }
     if (seg && d.cotacoes && d.cotacoes.resultado.conversao != null) h += kpi(t('conversao'), d.cotacoes.resultado.conversao + '<small>%</small>', '<span class="un-kpi__delta">' + d.cotacoes.resultado.fechou + ' / ' + (d.cotacoes.resultado.fechou + d.cotacoes.resultado.perdi) + '</span>');
     h += kpi(t('respondidas'), fmtN(k.respondidas), delta(k.respondidas, k.respondidas_prev, null));
     h += '</div>';
@@ -1016,7 +1054,13 @@
     if (!cs.length) return '<div class="un-card"><p class="un-empty">' + esc(t('nadaConversas')) + '</p></div>';
     // A coluna de canal só aparece quando o cliente tem mais de um (WhatsApp, Instagram…).
     const multi = ((d.cliente && d.cliente.canais) || []).length > 1;
-    let h = '<p class="un-mono" style="margin-bottom:var(--un-s3)">' + esc(t('maisRecentes', cs.length)) + '</p><div class="un-card"><table class="un-table"><thead><tr><th>' + esc(t('cliente')) + '</th>' + (multi ? '<th class="p-hide-m">' + esc(t('canal')) + '</th>' : '') + '<th>' + esc(t('status')) + '</th><th class="p-hide-m">' + esc(t('ultima')) + '</th><th class="un-num p-hide-m">' + esc(t('quando')) + '</th><th class="p-hide-m"></th></tr></thead><tbody>';
+    // Número em prosa: "metade das pessoas recebeu resposta em menos de 9 s". A contagem
+    // entre parênteses deixa claro de quantas conversas ele saiu — sem isso vira slogan.
+    const kk = d.kpis || {};
+    const fraseMediana = kk.primeira_resposta_mediana != null
+      ? '<p class="un-mono" style="margin-bottom:var(--un-s4)">' + esc(t('medianaFrase', fmtSeg(kk.primeira_resposta_mediana), kk.primeira_resposta_n || 0)) + '</p>'
+      : '<p class="un-mono" style="margin-bottom:var(--un-s4)">' + esc(t('semMediana')) + '</p>';
+    let h = fraseMediana + '<p class="un-mono" style="margin-bottom:var(--un-s3)">' + esc(t('maisRecentes', cs.length)) + '</p><div class="un-card"><table class="un-table"><thead><tr><th>' + esc(t('cliente')) + '</th>' + (multi ? '<th class="p-hide-m">' + esc(t('canal')) + '</th>' : '') + '<th>' + esc(t('status')) + '</th><th class="p-hide-m">' + esc(t('ultima')) + '</th><th class="un-num p-hide-m">' + esc(t('quando')) + '</th><th class="p-hide-m"></th></tr></thead><tbody>';
     h += cs.map(c => '<tr data-href="' + esc(c.link) + '"><td><div class="un-item__title">' + esc(c.nome) + '</div><div class="un-item__sub">' + esc(c.telefone) + (multi ? ' · ' + esc(c.canal_nome || '') : '') + (c.nao_lidas ? ' · ' + esc(t('naoLidas', c.nao_lidas)) : '') + '<span class="p-hide-d"> · ' + esc(fmtShort(c.quando)) + '</span></div><div class="un-item__text p-hide-d">' + esc(stripMd(c.ultima)) + '</div></td>' + (multi ? '<td class="p-hide-m"><span class="un-pill">' + esc(c.canal_nome || '') + '</span></td>' : '') + '<td>' + statusPill(c) + '</td><td class="p-hide-m"><div class="un-item__text">' + esc(stripMd(c.ultima)) + '</div></td><td class="un-num p-hide-m">' + esc(fmtShort(c.quando)) + '</td><td class="un-num p-hide-m"><a class="un-btn un-btn--ghost un-btn--sm" href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(t('abrir')) + '</a></td></tr>').join('');
     return h + '</tbody></table></div>';
   }
@@ -1044,7 +1088,12 @@
     h += '</div><div>';
     h += '<div class="un-grid un-grid--2" style="margin-bottom:var(--un-s4)">';
     h += kpi(t('cancelados'), fmtN(a.cancelados), '');
-    h += kpi(t('lembretes'), fmtN(a.lembretes_enviados), '');
+    // Lembrete enviado sem resposta não afirma que a pessoa não vem — afirma que ela ainda
+// não respondeu. É a diferença entre o que medimos e o que gostaríamos de saber.
+    h += kpi(t('lembretes'), fmtN(a.lembretes && a.lembretes.enviados != null ? a.lembretes.enviados : a.lembretes_enviados),
+      (a.lembretes && a.lembretes.enviados > 0)
+        ? '<span class="un-kpi__delta">' + fmtN(a.lembretes.confirmados) + ' ' + esc(t('confirmados')) + '</span>'
+        : '');
     h += '</div>';
     h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('porServico')) + '</p>';
     const mx = Math.max(1, ...porServ.map(s => s.n));
