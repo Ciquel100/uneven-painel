@@ -21,9 +21,37 @@
 <meta name="apple-mobile-web-app-title" content="Painel">
 <style>
   /* Específico do painel — só tokens, nada cru. */
-  /* Deslogado: nada de filtros, abas ou contador — só a porta de entrada. */
-  .p-deslogado .p-topbar-actions, .p-deslogado #nav, .p-deslogado .un-tabbar,
-  .p-deslogado .p-side-foot .un-seg, .p-deslogado #s-refresh-label, .p-deslogado .p-status { display: none; }
+  /* Porta de entrada: tela própria, não um formulário dentro do painel. */
+  .p-deslogado .un-app, .p-deslogado .un-tabbar { display: none; }
+  .p-porta { min-height: 100svh; display: grid; place-items: center; padding: var(--un-s10) var(--un-s5); }
+  .p-porta__caixa { width: 100%; max-width: 380px; }
+  .p-porta__marca { font: var(--un-label); letter-spacing: var(--un-track-wordmark); text-transform: uppercase; color: var(--un-muted); margin: 0; }
+  .p-porta__regua { border: 0; border-top: 1px solid var(--un-hair-10); margin: var(--un-s5) 0 var(--un-s10); }
+  .p-porta__titulo { font: var(--un-h1); letter-spacing: var(--un-track-tight); color: var(--un-txt); margin: 0 0 var(--un-s4); }
+  .p-porta__titulo .un-dim { color: var(--un-txt-2); font-weight: inherit; }
+  .p-porta__texto { font: var(--un-body-md); color: var(--un-muted); margin: 0 0 var(--un-s8); }
+  .p-porta__texto strong { color: var(--un-body); font-weight: 400; }
+  .p-campo { width: 100%; height: 52px; padding: 0 var(--un-s4); font: var(--un-ui-md); font-size: 16px;
+             color: var(--un-txt); background: var(--un-panel); border: 1px solid var(--un-line);
+             border-radius: var(--un-r-md); transition: border-color var(--un-fast) var(--un-ease); }
+  .p-campo:focus { outline: none; border-color: var(--un-txt); }
+  .p-campo::placeholder { color: var(--un-faint); }
+  .p-porta__btn { width: 100%; height: 52px; margin-top: var(--un-s3); justify-content: center; font-size: 15px; }
+  .p-otp { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--un-s2); }
+  .p-otp input { width: 100%; height: 58px; text-align: center; font: var(--un-kpi); font-size: 24px;
+                 color: var(--un-txt); background: var(--un-panel); border: 1px solid var(--un-line);
+                 border-radius: var(--un-r-md); caret-color: var(--un-muted); padding: 0;
+                 transition: border-color var(--un-fast) var(--un-ease); }
+  .p-otp input:focus { outline: none; border-color: var(--un-txt); }
+  .p-otp input[data-cheio="sim"] { border-color: var(--un-hair-16); }
+  .p-porta__erro { font: var(--un-mono-sm); color: var(--un-bad); margin: var(--un-s4) 0 0; min-height: 18px; }
+  .p-porta__acoes { display: flex; gap: var(--un-s5); flex-wrap: wrap; margin-top: var(--un-s6); }
+  .p-porta__link { background: none; border: 0; padding: 0; font: var(--un-mono-sm); color: var(--un-muted);
+                   cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .p-porta__link:hover { color: var(--un-body); }
+  .p-porta__rodape { margin-top: var(--un-s16); padding-top: var(--un-s5); border-top: 1px solid var(--un-hair-10);
+                     font: var(--un-mono-sm); color: var(--un-faint); }
+  @media (max-width: 380px) { .p-otp { gap: 6px; } .p-otp input { height: 52px; font-size: 20px; } }
   .p-client { display: flex; flex-direction: column; gap: var(--un-s2); }
   .p-client .un-h3 { font-size: 17px; }
   .p-side-foot { margin-top: auto; display: flex; flex-direction: column; gap: var(--un-s3); }
@@ -98,6 +126,7 @@
   </main>
 </div>
 <nav class="un-tabbar" id="tabbar"></nav>
+<div class="p-porta" id="porta" hidden></div>
 
 <script>
 (function () {
@@ -105,9 +134,12 @@
 
   /* ---------- config ---------- */
   const Q = new URLSearchParams(location.search);
-  const API = (location.protocol === 'file:' || !/hstgr\.cloud$/.test(location.hostname))
-    ? 'https://n8n-aib8.srv1923430.hstgr.cloud/webhook/painel-dados'
-    : '/webhook/painel-dados';
+  // Dentro do n8n (painel reserva) a API é a própria origem. Fora dele usamos
+  // api.unevenmedia.com: mesmo domínio-raiz do painel, então a sessão vira um
+  // cookie primeiro-parte que o Safari não apaga e que script nenhum lê.
+  const API = (/hstgr\.cloud$/.test(location.hostname))
+    ? '/webhook/painel-dados'
+    : 'https://api.unevenmedia.com/webhook/painel-dados';
   const AUTH = API.replace('painel-dados', 'painel-acesso');
   // Acesso: vem na URL na primeira vez; fora do n8n (origem normal) fica guardado no aparelho,
   // para o app instalado abrir sem o link. ?sair=1 apaga. No n8n (origem opaca) o storage não existe — try/catch.
@@ -129,7 +161,8 @@
   let SESSAO = null;
   const lerSessao = () => { try { return JSON.parse(localStorage.getItem(CHAVE_SESSAO) || 'null'); } catch (e) { return null; } };
   const gravarSessao = (s) => { try { s ? localStorage.setItem(CHAVE_SESSAO, JSON.stringify(s)) : localStorage.removeItem(CHAVE_SESSAO); } catch (e) {} };
-  const sessaoViva = (s) => !!(s && s.token && (!s.expira_em || new Date(s.expira_em).getTime() > Date.now()));
+  // Vale tanto a sessão com token guardado quanto a que só existe no cookie.
+  const sessaoViva = (s) => !!(s && (s.token || s.viaCookie) && (!s.expira_em || new Date(s.expira_em).getTime() > Date.now()));
   SESSAO = lerSessao();
   if (SESSAO && !sessaoViva(SESSAO)) { SESSAO = null; gravarSessao(null); }
   if (Q.get('sair')) { SESSAO = null; gravarSessao(null); }
@@ -170,7 +203,8 @@
       colarPh: 'cole aqui o link que a Uneven enviou', colarTit: 'Acesso', entrar: 'Entrar', colarErro: 'Esse endereço não traz o acesso. Copie de novo, inteiro, da mensagem da Uneven.',
       entrarTit: 'Entrar no painel', entrarTxt: 'Digite o seu e-mail. Mandamos um código de 6 dígitos.',
       campoEmail: 'E-mail', enviarCodigo: 'Enviar código', enviando: 'Enviando…',
-      codigoTit: 'Código enviado', codigoTxt: (e) => 'Se ' + e + ' tem acesso ao painel, o código de 6 dígitos chega em instantes. Ele vale por 10 minutos.',
+      codigoTit: 'Código enviado', codigoTxt1: 'Enviamos um código de 6 dígitos para', codigoTxt2: 'Se esse endereço tiver acesso, o código chega em instantes e vale 10 minutos.',
+      rodapePorta: 'Acesso por código. Nenhuma senha para lembrar.',
       campoCodigo: 'Código', conferindo: 'Conferindo…', reenviar: 'Enviar outro código', trocarEmail: 'Usar outro e-mail',
       temLink: 'Tenho um link de acesso', conta: 'Conta', sair: 'Sair', qualPainel: 'Qual painel',
       eEmailInvalido: 'Esse e-mail não parece certo.', eCodigoInvalido: 'Código errado.', eRestam: (n) => ' Restam ' + n + '.',
@@ -202,7 +236,8 @@
       colarPh: 'paste the link Uneven sent you', colarTit: 'Access', entrar: 'Enter', colarErro: 'That address has no access in it. Copy the whole link again from the Uneven message.',
       entrarTit: 'Sign in to the dashboard', entrarTxt: 'Enter your email. We send a 6-digit code.',
       campoEmail: 'Email', enviarCodigo: 'Send code', enviando: 'Sending…',
-      codigoTit: 'Code sent', codigoTxt: (e) => 'If ' + e + ' has access to the dashboard, the 6-digit code arrives in a moment. It is good for 10 minutes.',
+      codigoTit: 'Code sent', codigoTxt1: 'We sent a 6-digit code to', codigoTxt2: 'If that address has access, the code arrives in a moment and is good for 10 minutes.',
+      rodapePorta: 'Code-based access. No password to remember.',
       campoCodigo: 'Code', conferindo: 'Checking…', reenviar: 'Send another code', trocarEmail: 'Use another email',
       temLink: 'I have an access link', conta: 'Account', sair: 'Sign out', qualPainel: 'Which dashboard',
       eEmailInvalido: 'That email does not look right.', eCodigoInvalido: 'Wrong code.', eRestam: (n) => ' ' + n + ' left.',
@@ -234,7 +269,8 @@
       colarPh: 'pegá acá el enlace que Uneven te envió', colarTit: 'Acceso', entrar: 'Entrar', colarErro: 'Esa dirección no trae el acceso. Copiá de nuevo el enlace entero del mensaje de Uneven.',
       entrarTit: 'Entrar al panel', entrarTxt: 'Poné tu e-mail. Te mandamos un código de 6 dígitos.',
       campoEmail: 'E-mail', enviarCodigo: 'Enviar código', enviando: 'Enviando…',
-      codigoTit: 'Código enviado', codigoTxt: (e) => 'Si ' + e + ' tiene acceso al panel, el código de 6 dígitos llega en un momento. Vale por 10 minutos.',
+      codigoTit: 'Código enviado', codigoTxt1: 'Mandamos un código de 6 dígitos a', codigoTxt2: 'Si esa dirección tiene acceso, el código llega en un momento y vale 10 minutos.',
+      rodapePorta: 'Acceso por código. Ninguna contraseña que recordar.',
       campoCodigo: 'Código', conferindo: 'Verificando…', reenviar: 'Enviar otro código', trocarEmail: 'Usar otro e-mail',
       temLink: 'Tengo un enlace de acceso', conta: 'Cuenta', sair: 'Salir', qualPainel: 'Qué panel',
       eEmailInvalido: 'Ese e-mail no parece correcto.', eCodigoInvalido: 'Código incorrecto.', eRestam: (n) => ' Quedan ' + n + '.',
@@ -342,12 +378,14 @@
       const url = API + '?cliente=' + encodeURIComponent(CLIENTE) + '&token=' + encodeURIComponent(TOKEN) + '&dias=' + state.dias + '&_=' + t0;
       // A sessão vai no cabeçalho, não na URL: não entra em log de servidor nem em histórico.
       const cab = (SESSAO && SESSAO.token) ? { 'x-painel-sessao': SESSAO.token } : {};
-      const r = await fetch(url, { cache: 'no-store', headers: cab });
+      const r = await fetch(url, { cache: 'no-store', credentials: 'include', headers: cab });
       if (r.status === 401) {
         state.loading = false; clearTimeout(state.timer); clearInterval(state.tick); state.proxima = null;
         if (SESSAO) { SESSAO = null; gravarSessao(null); CLIENTE = ''; state.data = null; state.erro = 'semLink'; }
         else state.erro = 'auth';
-        renderAll(); return;
+        renderAll();
+        if (state.erro === 'semLink') tentarCookie();
+        return;
       }
       const j = await r.json();
       if (!j || !j.ok) throw new Error('resposta inválida');
@@ -387,7 +425,7 @@
 
   async function chamarAuth(corpo) {
     const r = await fetch(AUTH, {
-      method: 'POST', cache: 'no-store',
+      method: 'POST', cache: 'no-store', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(corpo)
     });
@@ -406,43 +444,58 @@
 
   function telaLogin() {
     const naEtapaEmail = login.etapa === 'email';
-    let h = '<div class="un-section"><div class="un-card" style="max-width:34rem">';
-    if (!naEtapaEmail) h += '<p class="un-label">' + esc(t('codigoTit')) + '</p>';
-    h += '<p class="un-body"' + (naEtapaEmail ? '' : ' style="margin-top:var(--un-s3)"') + '>' + esc(naEtapaEmail ? t('entrarTxt') : t('codigoTxt', login.email)) + '</p>';
-    h += '<div style="display:flex;gap:var(--un-s2);margin-top:var(--un-s4);flex-wrap:wrap">';
+    const t1 = naEtapaEmail ? t('entrarTit') : t('codigoTit');
+    const palavras = t1.split(' ');
+    const ultima = palavras.length > 1 ? palavras.pop() : '';
+    const titulo = esc(palavras.join(' ')) + (ultima ? ' <span class="un-dim">' + esc(ultima) + '</span>' : '');
+
+    let h = '<div class="p-porta__caixa">';
+    h += '<p class="p-porta__marca">Uneven Media</p><hr class="p-porta__regua">';
+    h += '<h1 class="p-porta__titulo">' + titulo + '</h1>';
+    h += '<p class="p-porta__texto">' + (naEtapaEmail ? esc(t('entrarTxt'))
+      : esc(t('codigoTxt1')) + ' <strong>' + esc(login.email) + '</strong>. ' + esc(t('codigoTxt2'))) + '</p>';
+
     if (naEtapaEmail) {
-      h += '<input id="lg-email" class="un-input" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" style="flex:1 1 220px" placeholder="' + esc(t('campoEmail')) + '" value="' + esc(login.email) + '">';
-      h += '<button id="lg-ok" class="un-btn" type="button"' + (login.ocupado ? ' disabled' : '') + '>' + esc(login.ocupado ? t('enviando') : t('enviarCodigo')) + '</button>';
+      h += '<input id="lg-email" class="p-campo" type="email" inputmode="email" autocomplete="email"'
+        + ' autocapitalize="off" spellcheck="false" placeholder="' + esc(t('campoEmail')) + '" value="' + esc(login.email) + '">';
+      h += '<button id="lg-ok" class="un-btn p-porta__btn" type="button"' + (login.ocupado ? ' disabled' : '') + '>'
+        + esc(login.ocupado ? t('enviando') : t('enviarCodigo')) + '</button>';
     } else {
-      h += '<input id="lg-codigo" class="un-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="flex:1 1 140px;font:var(--un-mono-sm);letter-spacing:.3em" placeholder="000000">';
-      h += '<button id="lg-ok" class="un-btn" type="button"' + (login.ocupado ? ' disabled' : '') + '>' + esc(login.ocupado ? t('conferindo') : t('entrar')) + '</button>';
+      h += '<div class="p-otp" id="lg-otp">';
+      for (let k = 0; k < 6; k++) {
+        h += '<input type="text" inputmode="numeric" maxlength="1" data-i="' + k + '"'
+          + (k === 0 ? ' autocomplete="one-time-code"' : '') + ' aria-label="' + esc(t('campoCodigo')) + ' ' + (k + 1) + '">';
+      }
+      h += '</div>';
+      h += '<button id="lg-ok" class="un-btn p-porta__btn" type="button"' + (login.ocupado ? ' disabled' : '') + '>'
+        + esc(login.ocupado ? t('conferindo') : t('entrar')) + '</button>';
     }
-    h += '</div>';
-    if (login.erro) h += '<p class="un-mono" style="margin-top:var(--un-s3)">' + esc(login.erro) + '</p>';
+
+    h += '<p class="p-porta__erro">' + esc(login.erro || '') + '</p>';
+
+    h += '<div class="p-porta__acoes">';
     if (!naEtapaEmail) {
-      h += '<p style="margin-top:var(--un-s4);display:flex;gap:var(--un-s3);flex-wrap:wrap">'
-        + '<button id="lg-reenviar" class="un-btn un-btn--ghost un-btn--sm" type="button">' + esc(t('reenviar')) + '</button>'
-        + '<button id="lg-voltar" class="un-btn un-btn--ghost un-btn--sm" type="button">' + esc(t('trocarEmail')) + '</button></p>';
+      h += '<button id="lg-reenviar" class="p-porta__link" type="button">' + esc(t('reenviar')) + '</button>'
+        + '<button id="lg-voltar" class="p-porta__link" type="button">' + esc(t('trocarEmail')) + '</button>';
+    } else if (!login.mostrarLink) {
+      h += '<button id="lg-tem-link" class="p-porta__link" type="button">' + esc(t('temLink')) + '</button>';
     }
     h += '</div>';
-    // Escada para os links antigos, enquanto eles ainda valem.
-    h += '<div class="un-card un-card--flat" style="margin-top:var(--un-s4);max-width:34rem">';
-    if (!login.mostrarLink) {
-      h += '<button id="lg-tem-link" class="un-btn un-btn--ghost un-btn--sm" type="button">' + esc(t('temLink')) + '</button>';
-    } else {
-      h += '<label class="un-label" for="lk">' + esc(t('colarTit')) + '</label>'
-        + '<div style="display:flex;gap:var(--un-s2);margin-top:var(--un-s2);flex-wrap:wrap">'
-        + '<input id="lk" class="un-input" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1 1 220px" placeholder="' + esc(t('colarPh')) + '">'
-        + '<button id="lk-ok" class="un-btn un-btn--ghost" type="button">' + esc(t('entrar')) + '</button></div>'
-        + '<p id="lk-erro" class="un-mono" style="margin-top:var(--un-s2);display:none"></p>';
+
+    if (login.mostrarLink && naEtapaEmail) {
+      h += '<div style="margin-top:var(--un-s5)">'
+        + '<input id="lk" class="p-campo" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="' + esc(t('colarPh')) + '">'
+        + '<button id="lk-ok" class="un-btn un-btn--ghost p-porta__btn" type="button">' + esc(t('entrar')) + '</button>'
+        + '<p id="lk-erro" class="p-porta__erro"></p></div>';
     }
-    h += '</div></div>';
+
+    h += '<p class="p-porta__rodape">' + esc(t('rodapePorta')) + '</p>';
+    h += '</div>';
     return h;
   }
 
   function ligarLogin() {
-    const redesenhar = () => { $('#view').innerHTML = telaLogin(); ligarLogin(); };
-    const foco = (sel) => { const el = $(sel); if (el) el.focus(); };
+    const redesenhar = (foco) => { $('#porta').innerHTML = telaLogin(); ligarLogin(); if (foco) { const el = $(foco); if (el) el.focus(); } };
 
     const pedir = async (email) => {
       login.email = String(email || '').trim().toLowerCase();
@@ -450,10 +503,9 @@
       try {
         const j = await chamarAuth({ acao: 'pedir-codigo', email: login.email });
         login.ocupado = false;
-        if (j && j.ok) { login.etapa = 'codigo'; login.erro = ''; }
-        else login.erro = textoErro(j);
+        if (j && j.ok) { login.etapa = 'codigo'; login.erro = ''; } else login.erro = textoErro(j);
       } catch (e) { login.ocupado = false; login.erro = t('eRede'); }
-      redesenhar(); foco(login.etapa === 'codigo' ? '#lg-codigo' : '#lg-email');
+      redesenhar(login.etapa === 'codigo' ? '#lg-otp input[data-i="0"]' : '#lg-email');
     };
 
     const entrar = async (codigo) => {
@@ -462,39 +514,70 @@
       try { j = await chamarAuth({ acao: 'entrar', email: login.email, codigo: codigo, aparelho: navigator.userAgent.slice(0, 110) }); }
       catch (e) { j = null; }
       login.ocupado = false;
-      if (j && j.ok && j.sessao) {
-        const lista = j.clientes || [];
-        SESSAO = { token: j.sessao, expira_em: j.expira_em, email: j.email, nome: j.nome, clientes: lista, escolhido: (lista[0] || {}).cliente_id || '' };
-        gravarSessao(SESSAO);
-        CLIENTE = SESSAO.escolhido; TOKEN = '';
-        login.etapa = 'email'; login.erro = '';
-        state.erro = null; renderAll(); load();
-        return;
-      }
+      if (j && j.ok && j.sessao) { aplicarSessao(j); return; }
       login.erro = textoErro(j);
       if (j && (j.erro === 'codigo_expirado' || j.erro === 'tentativas_demais')) login.etapa = 'email';
-      redesenhar(); foco(login.etapa === 'codigo' ? '#lg-codigo' : '#lg-email');
+      redesenhar(login.etapa === 'codigo' ? '#lg-otp input[data-i="0"]' : '#lg-email');
     };
+
+    const caixas = () => [...document.querySelectorAll('#lg-otp input')];
+    const juntar = () => caixas().map(c => c.value).join('');
 
     const be = $('#lg-ok');
     if (be) be.addEventListener('click', () => {
       if (login.etapa === 'email') pedir(($('#lg-email') || {}).value);
-      else entrar((($('#lg-codigo') || {}).value || '').replace(/\D/g, ''));
+      else entrar(juntar().replace(/\D/g, ''));
     });
-    ['#lg-email', '#lg-codigo'].forEach(sel => {
-      const el = $(sel);
-      if (el) el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') be && be.click(); });
+
+    const em = $('#lg-email');
+    if (em) em.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') be && be.click(); });
+
+    // Seis caixas: digitou anda sozinho, apagou volta, colar preenche tudo,
+    // e no sexto dígito já tenta entrar — ninguém precisa procurar o botão.
+    caixas().forEach((c, i, todas) => {
+      c.addEventListener('input', () => {
+        c.value = (c.value || '').replace(/\D/g, '').slice(-1);
+        c.dataset.cheio = c.value ? 'sim' : 'nao';
+        if (c.value && i < todas.length - 1) todas[i + 1].focus();
+        const tudo = juntar();
+        if (tudo.length === 6 && !login.ocupado) entrar(tudo);
+      });
+      c.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Backspace' && !c.value && i > 0) { todas[i - 1].focus(); todas[i - 1].value = ''; todas[i - 1].dataset.cheio = 'nao'; ev.preventDefault(); }
+        if (ev.key === 'ArrowLeft' && i > 0) todas[i - 1].focus();
+        if (ev.key === 'ArrowRight' && i < todas.length - 1) todas[i + 1].focus();
+        if (ev.key === 'Enter') be && be.click();
+      });
+      c.addEventListener('paste', (ev) => {
+        const texto = ((ev.clipboardData || window.clipboardData).getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        if (!texto) return;
+        ev.preventDefault();
+        todas.forEach((x, k) => { x.value = texto[k] || ''; x.dataset.cheio = x.value ? 'sim' : 'nao'; });
+        todas[Math.min(texto.length, 5)].focus();
+        if (texto.length === 6 && !login.ocupado) entrar(texto);
+      });
     });
+
     const br = $('#lg-reenviar'); if (br) br.addEventListener('click', () => pedir(login.email));
-    const bv = $('#lg-voltar'); if (bv) bv.addEventListener('click', () => { login.etapa = 'email'; login.erro = ''; redesenhar(); foco('#lg-email'); });
-    const bl = $('#lg-tem-link'); if (bl) bl.addEventListener('click', () => { login.mostrarLink = true; redesenhar(); foco('#lk'); });
+    const bv = $('#lg-voltar'); if (bv) bv.addEventListener('click', () => { login.etapa = 'email'; login.erro = ''; redesenhar('#lg-email'); });
+    const bl = $('#lg-tem-link'); if (bl) bl.addEventListener('click', () => { login.mostrarLink = true; redesenhar('#lk'); });
 
     const inp = $('#lk'), ok = $('#lk-ok'), err = $('#lk-erro');
     if (inp && ok) {
-      const tentar = () => { if (!entrarComLink(inp.value)) { err.textContent = t('colarErro'); err.style.display = ''; inp.focus(); } };
+      const tentar = () => { if (!entrarComLink(inp.value)) { err.textContent = t('colarErro'); inp.focus(); } };
       ok.addEventListener('click', tentar);
       inp.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') tentar(); });
     }
+  }
+
+  function aplicarSessao(j) {
+    const lista = (j.clientes || []).map(c => (typeof c === 'string' ? { cliente_id: c, papel: 'dono' } : c));
+    const token = j.sessao || (SESSAO && SESSAO.token) || '';
+    SESSAO = { token: token, viaCookie: !token, expira_em: j.expira_em, email: j.email, nome: j.nome, clientes: lista, escolhido: (lista[0] || {}).cliente_id || '' };
+    gravarSessao(SESSAO);
+    CLIENTE = SESSAO.escolhido; TOKEN = '';
+    login.etapa = 'email'; login.erro = ''; login.ocupado = false; login.mostrarLink = false;
+    state.erro = null; renderAll(); load();
   }
 
   function entrarComLink(txt) {
@@ -511,7 +594,7 @@
   }
 
   function sair() {
-    const token = SESSAO && SESSAO.token;
+    const token = (SESSAO && SESSAO.token) || '';
     SESSAO = null; gravarSessao(null);
     try { localStorage.removeItem('un-painel'); } catch (e) {}
     CLIENTE = ''; TOKEN = '';
@@ -520,7 +603,18 @@
     login.etapa = 'email'; login.erro = ''; login.ocupado = false; login.mostrarLink = false;
     try { history.replaceState(null, '', location.pathname + '#/visao'); } catch (e) {}
     renderAll();
-    if (token) chamarAuth({ acao: 'sair', sessao: token }).catch(() => {});
+    // Sempre avisa o servidor: apaga a linha da sessão e limpa o cookie.
+    chamarAuth({ acao: 'sair', sessao: token }).catch(() => {});
+  }
+
+  // Pergunta ao servidor se o cookie ainda vale. Uma vez por carregamento.
+  let cookieTestado = false;
+  function tentarCookie() {
+    if (cookieTestado) return;
+    cookieTestado = true;
+    chamarAuth({ acao: 'verificar' }).then((j) => {
+      if (j && j.ok && (j.clientes || []).length && state.erro === 'semLink') aplicarSessao(j);
+    }).catch(() => {});
   }
 
   function trocarCliente(id) {
@@ -534,16 +628,17 @@
   function renderAll() {
     const fora = state.erro === 'semLink';
     document.body.classList.toggle('p-deslogado', fora);
-    renderSegs(); renderNav();
+    const porta = $('#porta');
+    porta.hidden = !fora;
     if (fora) {
-      $('#s-persona').textContent = '';
-      $('#s-nome').textContent = t('entrarTit');
-      $('#s-sub').textContent = '';
-      $('#t-persona').textContent = '';
-      $('#t-title').textContent = t('entrarTit');
-      renderView(); setStatus();
+      document.title = t('entrarTit') + ' — Uneven Media';
+      porta.innerHTML = telaLogin();
+      ligarLogin();
+      const primeiro = $('#lg-otp input[data-i="0"]') || $('#lg-email');
+      if (primeiro && !login.ocupado) primeiro.focus();
       return;
     }
+    renderSegs(); renderNav();
     const d = state.data;
     if (d) {
       $('#s-persona').textContent = d.cliente.persona + ' · ' + (d.cliente.tipo === 'seguros' ? t('cotacoes') : t('agenda'));
@@ -555,7 +650,6 @@
   }
   function renderView() {
     const v = $('#view'), d = state.data;
-    if (state.erro === 'semLink') { v.innerHTML = telaLogin(); ligarLogin(); return; }
     if (state.erro === 'auth') { v.innerHTML = '<div class="un-banner un-banner--bad">' + esc(t('erroAuth')) + '</div>'; return; }
     if (!d) { v.innerHTML = (state.erro ? '<div class="un-section"><div class="un-banner un-banner--bad">' + esc(t('erroCarregar')) + '</div></div>' : '') + skeleton(); return; }
     const cur = currentView();
@@ -693,10 +787,13 @@
   /* ---------- start ---------- */
   renderSegs(); renderNav(); renderView();
   // Sem acesso nenhum (abriu o domínio puro) é diferente de acesso recusado pela API.
-  // Entra direto se tem sessão viva (ou um link antigo com token). Senão, tela de login.
+  // Entra direto se o aparelho lembra (ou se veio um link antigo com token).
+  // Se não lembra, ainda pode existir o cookie de sessão — o Safari apaga o
+  // armazenamento da página depois de ~7 dias, mas não o cookie. Por isso
+  // perguntamos ao servidor antes de mostrar a tela de login.
   if (SESSAO && CLIENTE) load();
   else if (CLIENTE && TOKEN) load();
-  else { state.erro = 'semLink'; renderAll(); }
+  else { state.erro = 'semLink'; renderAll(); tentarCookie(); }
 })();
 </script>
 </body>
