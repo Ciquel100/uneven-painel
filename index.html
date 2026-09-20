@@ -85,6 +85,54 @@
   }
   .p-hide-d { display: none; }
   @media (max-width: 900px) { .p-hide-d { display: initial; } div.p-hide-d { display: block; } div.p-hide-d.un-item__text { display: -webkit-box; } }
+
+  /* Bloco "Agora": o que pede ação. Some quando não há nada — vazio não é card vazio. */
+  .p-agora { border: 1px solid var(--un-line); border-radius: var(--un-r-md); background: var(--un-panel);
+             padding: var(--un-s4) var(--un-s5); margin-bottom: var(--un-s5); }
+  .p-agora__tit { font: var(--un-label); letter-spacing: var(--un-track-label); text-transform: uppercase;
+                  color: var(--un-muted); margin: 0 0 var(--un-s3); }
+  .p-agora__lin { display: flex; align-items: center; gap: var(--un-s3); padding: 7px 0; flex-wrap: wrap;
+                  border-top: 1px solid var(--un-line-soft); }
+  .p-agora__lin:first-of-type { border-top: 0; }
+  .p-agora__txt { font: var(--un-ui-md); color: var(--un-txt); flex: 1 1 auto; min-width: 0; }
+  .p-agora__lin[data-urg="alta"] .p-agora__marca { background: var(--un-bad); }
+  .p-agora__lin[data-urg="media"] .p-agora__marca { background: var(--un-warn); }
+  .p-agora__marca { width: 6px; height: 6px; border-radius: 50%; background: var(--un-muted); flex: none; }
+
+  /* Herói: um número responde "valeu a pena?". O resto é apoio. */
+  .p-heroi { display: flex; align-items: baseline; gap: var(--un-s4); flex-wrap: wrap; margin-bottom: var(--un-s2); }
+  .p-heroi__n { font: var(--un-kpi); font-size: clamp(44px, 9vw, 72px); line-height: 1; color: var(--un-txt);
+                letter-spacing: var(--un-track-tight); }
+  .p-heroi__rot { font: var(--un-body-md); color: var(--un-body); }
+  .p-heroi__sub { font: var(--un-mono-sm); color: var(--un-muted); margin: 0 0 var(--un-s6); }
+
+  /* Semana: grade de dias com os horários dentro. Não é calendário de verdade — é o que cabe no olho. */
+  .p-semana { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--un-s2); }
+  .p-semana__dia { min-width: 0; }
+  .p-semana__cab { font: var(--un-label); letter-spacing: 0; text-transform: none; color: var(--un-muted);
+                   padding-bottom: 6px; border-bottom: 1px solid var(--un-line); margin-bottom: 6px; white-space: nowrap;
+                   overflow: hidden; text-overflow: ellipsis; }
+  .p-semana__dia[data-hoje] .p-semana__cab { color: var(--un-txt); border-bottom-color: var(--un-txt); }
+  .p-ev { display: block; padding: 5px 6px; border-radius: var(--un-r-sm); margin-bottom: 4px;
+          border: 1px solid var(--un-line); background: transparent; text-decoration: none; }
+  .p-ev[data-bia] { border-color: var(--un-hair-16); background: var(--un-hair-06); }
+  .p-ev__h { font: var(--un-mono-sm); color: var(--un-muted); display: block; }
+  .p-ev__s { font: var(--un-ui-sm); font-size: 12.5px; color: var(--un-txt); display: block;
+             overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .p-semana__vazio { font: var(--un-mono-sm); color: var(--un-faint); }
+  .p-legenda { display: flex; gap: var(--un-s4); flex-wrap: wrap; margin-top: var(--un-s4); }
+  .p-legenda span { font: var(--un-mono-sm); color: var(--un-muted); display: inline-flex; align-items: center; gap: 6px; }
+  .p-legenda i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--un-line); display: inline-block; }
+  .p-legenda i[data-bia] { border-color: var(--un-hair-16); background: var(--un-hair-06); }
+  @media (max-width: 900px) { .p-semana { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .p-semana { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  /* Ajustes */
+  .p-form { display: flex; flex-direction: column; gap: var(--un-s4); max-width: 460px; }
+  .p-form label { font: var(--un-label); letter-spacing: var(--un-track-label); text-transform: uppercase; color: var(--un-muted); display: block; margin-bottom: 6px; }
+  .p-sel { height: 44px; padding: 0 var(--un-s3); font: var(--un-ui-md); font-size: 15px; color: var(--un-txt);
+           background: var(--un-panel); border: 1px solid var(--un-line); border-radius: var(--un-r-md); width: 100%; }
+  .p-linha2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--un-s3); }
 </style>
 </head>
 <body class="un-root">
@@ -281,7 +329,141 @@
       seg: 's', naoLidas: (n) => n + ' sin leer', de: { cliente: 'cliente', nos: '' }
     }
   };
+  // Textos novos (20/set). Ficam fora dos blocos acima de propósito: assim dá para revisar
+  // o que entrou sem reler três traduções inteiras.
+  const T2 = {
+    pt: {
+      agoraTit: 'Agora', esperandoHa: (n, m) => n + ' está esperando você há ' + m,
+      minutos: (m) => m + ' min', horas: (h) => h + ' h', menosDeUmMin: 'menos de 1 min',
+      proximoHoje: 'Próximo hoje', cancelouHoje: (n) => n === 1 ? '1 horário cancelado' : n + ' horários cancelados',
+      cotacaoParada: (n) => n === 1 ? '1 cotação pronta parada há mais de 3 dias' : n + ' cotações prontas paradas há mais de 3 dias',
+      verAgenda: 'Ver agenda', verCotacoes: 'Ver cotações',
+      heroiMarcados: 'horários marcados pela Bia', heroiMarcadosP: (p) => 'horários marcados pela ' + p,
+      heroiCotacoes: 'cotações prontas para o corretor',
+      foraExpediente: (n) => n === 1 ? '1 deles fora do seu expediente' : n + ' deles fora do seu expediente',
+      foraExpedienteConv: 'conversas fora do expediente', noPeriodoLabel: 'atendidos no período',
+      precisaramDeVoce: 'precisaram de você', ocupacao: 'agenda cheia', ocupacaoSub: (o, a) => o + ' h de ' + a + ' h abertas',
+      desfecho: 'No que deu cada conversa', dMarcou: 'marcou horário', dPrecisou: 'precisou de você', dResolvida: 'só tirou dúvida', dAberto: 'ainda em aberto',
+      // O sistema só conhece quem falou com a recepção. Chamar de "cliente novo" afirmaria
+      // que a pessoa nunca pisou no salão — isso ninguém mediu.
+      novosLabel: 'falaram pela 1ª vez', recorrentesLabel: 'já tinham falado', porCanal: 'Por canal',
+      semana: 'A sua semana', semanaSub: 'o que a Bia encheu aparece marcado', semanaSubP: (p) => 'o que a ' + p + ' encheu aparece marcado',
+      peloBot: (p) => 'pela ' + p, porVoce: 'por você', nadaSemana: 'Nenhum horário nos próximos 7 dias.',
+      agendaLivre: 'Agenda livre pelos próximos 7 dias.',
+      canal: 'Canal', cancelados: 'cancelados', lembretes: 'lembretes enviados',
+      avaliacoesTit: 'Avaliações no Google', notaGoogle: 'nota no Google', semPerfil: 'Perfil do Google ainda não conectado. Quando conectar, a nota e as avaliações novas aparecem aqui.',
+      agendaIndisponivel: (m) => 'Agenda indisponível: ' + m + '.',
+      avaliacoesParcial: 'O Google devolve só as 5 mais recentes por aqui.',
+      mvFonteNaoRespondeu: 'A fonte não respondeu agora. Tente daqui a pouco.',
+      mvSemPlaceId: 'Perfil do Google ainda não conectado. Quando conectar, a nota e as avaliações aparecem aqui.',
+      tudoCerto: 'Está tudo funcionando.', tudoCertoSub: 'Nenhuma falha nas automações nas últimas 24 horas.',
+      houveFalha: (n) => n === 1 ? 'Houve 1 problema nas últimas 24 horas.' : 'Houve ' + n + ' problemas nas últimas 24 horas.',
+      houveFalhaSub: 'A Uneven é avisada automaticamente quando isso acontece.',
+      ajustes: 'Ajustes', emailSemanal: 'Resumo semanal por e-mail',
+      emailSemanalTxt: 'Toda semana, um resumo do que a recepção fez: horários marcados, quem precisou de você e o que vem pela frente.',
+      receber: 'Quero receber', naoReceber: 'Não quero', paraQuem: 'Enviar para', diaSemana: 'Dia', hora: 'Hora',
+      salvar: 'Salvar', salvo: 'Salvo', salvando: 'Salvando…', erroSalvar: 'Não consegui salvar. Tente de novo.',
+      dias7: ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'],
+      emailPh: 'e-mail de quem recebe', idadeCotacao: 'Há quanto tempo estão paradas',
+      ate24h: 'até 24 h', de1a3d: '1 a 3 dias', mais3d: 'mais de 3 dias',
+      fechou: 'Fechou', perdi: 'Perdi', resultadoTit: 'Resultado', conversao: 'fecharam',
+      motivoPerda: 'Por que não fechou?', mPreco: 'preço', mDemorou: 'demorei a responder', mOutro: 'foi com outro', mDesistiu: 'desistiu',
+      camposFaltam: 'O que mais falta nas cotações', jaRespondido: 'registrado',
+    },
+    en: {
+      agoraTit: 'Now', esperandoHa: (n, m) => n + ' has been waiting for you for ' + m,
+      minutos: (m) => m + ' min', horas: (h) => h + ' h', menosDeUmMin: 'less than 1 min',
+      proximoHoje: 'Next today', cancelouHoje: (n) => n === 1 ? '1 appointment cancelled' : n + ' appointments cancelled',
+      cotacaoParada: (n) => n === 1 ? '1 quote ready and idle for over 3 days' : n + ' quotes ready and idle for over 3 days',
+      verAgenda: 'See schedule', verCotacoes: 'See quotes',
+      heroiMarcados: 'appointments booked by Bia', heroiMarcadosP: (p) => 'appointments booked by ' + p,
+      heroiCotacoes: 'quotes ready for the broker',
+      foraExpediente: (n) => n === 1 ? '1 of them outside your hours' : n + ' of them outside your hours',
+      foraExpedienteConv: 'conversations outside hours', noPeriodoLabel: 'served in period',
+      precisaramDeVoce: 'needed you', ocupacao: 'schedule filled', ocupacaoSub: (o, a) => o + ' h of ' + a + ' h open',
+      desfecho: 'What each conversation led to', dMarcou: 'booked', dPrecisou: 'needed you', dResolvida: 'just a question', dAberto: 'still open',
+      novosLabel: 'first time talking', recorrentesLabel: 'had talked before', porCanal: 'By channel',
+      semana: 'Your week', semanaSub: 'what Bia filled is marked', semanaSubP: (p) => 'what ' + p + ' filled is marked',
+      peloBot: (p) => 'by ' + p, porVoce: 'by you', nadaSemana: 'No appointments in the next 7 days.',
+      agendaLivre: 'Schedule is open for the next 7 days.',
+      canal: 'Channel', cancelados: 'cancelled', lembretes: 'reminders sent',
+      avaliacoesTit: 'Google reviews', notaGoogle: 'Google rating', semPerfil: 'Google profile not connected yet. Once connected, your rating and new reviews show here.',
+      agendaIndisponivel: (m) => 'Schedule unavailable: ' + m + '.',
+      avaliacoesParcial: 'Google only returns the 5 most recent here.',
+      mvFonteNaoRespondeu: 'The source did not answer just now. Try again shortly.',
+      mvSemPlaceId: 'Google profile not connected yet. Once it is, the rating and reviews show up here.',
+      tudoCerto: 'Everything is working.', tudoCertoSub: 'No failures in the automations in the last 24 hours.',
+      houveFalha: (n) => n === 1 ? 'There was 1 problem in the last 24 hours.' : 'There were ' + n + ' problems in the last 24 hours.',
+      houveFalhaSub: 'Uneven is notified automatically when this happens.',
+      ajustes: 'Settings', emailSemanal: 'Weekly email summary',
+      emailSemanalTxt: 'Every week, a summary of what the front desk did: appointments booked, who needed you, and what is coming up.',
+      receber: 'Send it to me', naoReceber: 'No thanks', paraQuem: 'Send to', diaSemana: 'Day', hora: 'Time',
+      salvar: 'Save', salvo: 'Saved', salvando: 'Saving…', erroSalvar: "Couldn't save. Try again.",
+      dias7: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      emailPh: 'email of who receives it', idadeCotacao: 'How long they have been idle',
+      ate24h: 'under 24 h', de1a3d: '1 to 3 days', mais3d: 'over 3 days',
+      fechou: 'Won', perdi: 'Lost', resultadoTit: 'Outcome', conversao: 'closed',
+      motivoPerda: 'Why not?', mPreco: 'price', mDemorou: 'I was slow', mOutro: 'went elsewhere', mDesistiu: 'gave up',
+      camposFaltam: 'What is missing most in quotes', jaRespondido: 'recorded',
+    },
+    es: {
+      agoraTit: 'Ahora', esperandoHa: (n, m) => n + ' te está esperando hace ' + m,
+      minutos: (m) => m + ' min', horas: (h) => h + ' h', menosDeUmMin: 'menos de 1 min',
+      proximoHoje: 'Próxima hoy', cancelouHoje: (n) => n === 1 ? '1 cita cancelada' : n + ' citas canceladas',
+      cotacaoParada: (n) => n === 1 ? '1 cotización lista parada hace más de 3 días' : n + ' cotizaciones listas paradas hace más de 3 días',
+      verAgenda: 'Ver agenda', verCotacoes: 'Ver cotizaciones',
+      heroiMarcados: 'citas agendadas por Bia', heroiMarcadosP: (p) => 'citas agendadas por ' + p,
+      heroiCotacoes: 'cotizaciones listas para el corredor',
+      foraExpediente: (n) => n === 1 ? '1 de ellas fuera de tu horario' : n + ' de ellas fuera de tu horario',
+      foraExpedienteConv: 'conversaciones fuera del horario', noPeriodoLabel: 'atendidos en el período',
+      precisaramDeVoce: 'te necesitaron', ocupacao: 'agenda llena', ocupacaoSub: (o, a) => o + ' h de ' + a + ' h abiertas',
+      desfecho: 'En qué terminó cada conversación', dMarcou: 'agendó', dPrecisou: 'te necesitó', dResolvida: 'solo una duda', dAberto: 'todavía abierta',
+      novosLabel: 'hablaron por 1ª vez', recorrentesLabel: 'ya habían hablado', porCanal: 'Por canal',
+      semana: 'Tu semana', semanaSub: 'lo que llenó Bia aparece marcado', semanaSubP: (p) => 'lo que llenó ' + p + ' aparece marcado',
+      peloBot: (p) => 'por ' + p, porVoce: 'por vos', nadaSemana: 'Sin citas en los próximos 7 días.',
+      agendaLivre: 'Agenda libre por los próximos 7 días.',
+      canal: 'Canal', cancelados: 'canceladas', lembretes: 'recordatorios enviados',
+      avaliacoesTit: 'Reseñas en Google', notaGoogle: 'nota en Google', semPerfil: 'Perfil de Google aún no conectado. Cuando lo conectes, la nota y las reseñas nuevas aparecen acá.',
+      agendaIndisponivel: (m) => 'Agenda no disponible: ' + m + '.',
+      avaliacoesParcial: 'Google solo devuelve las 5 más recientes por aquí.',
+      mvFonteNaoRespondeu: 'La fuente no respondió ahora. Inténtalo en un rato.',
+      mvSemPlaceId: 'Perfil de Google aún no conectado. Cuando se conecte, la nota y las reseñas aparecen aquí.',
+      tudoCerto: 'Todo está funcionando.', tudoCertoSub: 'Ningún fallo en las automatizaciones en las últimas 24 horas.',
+      houveFalha: (n) => n === 1 ? 'Hubo 1 problema en las últimas 24 horas.' : 'Hubo ' + n + ' problemas en las últimas 24 horas.',
+      houveFalhaSub: 'Uneven es avisada automáticamente cuando esto pasa.',
+      ajustes: 'Ajustes', emailSemanal: 'Resumen semanal por e-mail',
+      emailSemanalTxt: 'Cada semana, un resumen de lo que hizo la recepción: citas agendadas, quién te necesitó y lo que viene.',
+      receber: 'Quiero recibirlo', naoReceber: 'No quiero', paraQuem: 'Enviar a', diaSemana: 'Día', hora: 'Hora',
+      salvar: 'Guardar', salvo: 'Guardado', salvando: 'Guardando…', erroSalvar: 'No pude guardar. Probá de nuevo.',
+      dias7: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+      emailPh: 'e-mail de quien lo recibe', idadeCotacao: 'Hace cuánto están paradas',
+      ate24h: 'hasta 24 h', de1a3d: '1 a 3 días', mais3d: 'más de 3 días',
+      fechou: 'Cerró', perdi: 'Perdí', resultadoTit: 'Resultado', conversao: 'cerraron',
+      motivoPerda: '¿Por qué no cerró?', mPreco: 'precio', mDemorou: 'tardé en responder', mOutro: 'fue con otro', mDesistiu: 'desistió',
+      camposFaltam: 'Lo que más falta en las cotizaciones', jaRespondido: 'registrado',
+    }
+  };
+  for (const idioma of Object.keys(T2)) Object.assign(T[idioma], T2[idioma]);
+
   const t = (k, ...a) => { const v = (T[state.lang] || T.pt)[k]; return typeof v === 'function' ? v(...a) : (v == null ? k : v); };
+
+  // O backend manda código ('sem_place_id'), não frase. Assim a mesma causa aparece nos três
+  // idiomas sem o n8n saber português — e um código novo não vira texto cru na tela do cliente.
+  const MOTIVOS = { sem_place_id: 'mvSemPlaceId', fonte_nao_respondeu: 'mvFonteNaoRespondeu' };
+  const motivoTexto = (cod) => {
+    if (!cod) return t('semDados');
+    const chave = MOTIVOS[String(cod)];
+    return chave ? t(chave) : t('semDados');
+  };
+
+  // Por que a cotação não fechou. Lista fechada: montar a chave por concatenação
+  // ('m' + código) põe o código cru na tela assim que alguém gravar um motivo novo.
+  const MOTIVOS_PERDA = ['preco', 'demorou', 'outro', 'desistiu'];
+  const ROTULO_PERDA = { preco: 'mPreco', demorou: 'mDemorou', outro: 'mOutro', desistiu: 'mDesistiu' };
+  const motivoPerdaTexto = (cod) => {
+    const chave = ROTULO_PERDA[String(cod || '').toLowerCase()];
+    return chave ? t(chave) : '';
+  };
   const LOCALE = { pt: 'pt-BR', en: 'en-US', es: 'es-US' };
 
   /* ---------- util ---------- */
@@ -321,7 +503,8 @@
     conversas: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>',
     agenda: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
     cotacoes: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
-    saude: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>'
+    saude: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>',
+    ajustes: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
   };
   function views() {
     const tipo = state.data ? state.data.cliente.tipo : 'agenda';
@@ -329,7 +512,8 @@
       { id: 'visao', num: '01' },
       { id: 'conversas', num: '02' },
       tipo === 'seguros' ? { id: 'cotacoes', num: '03' } : { id: 'agenda', num: '03' },
-      { id: 'saude', num: '04' }
+      { id: 'saude', num: '04' },
+      { id: 'ajustes', num: '05' }
     ];
   }
   function currentView() { const h = (location.hash || '#/visao').replace('#/', ''); const ok = views().map(v => v.id); return ok.includes(h) ? h : 'visao'; }
@@ -365,7 +549,27 @@
     const tc = e.target.closest('button[data-cliente]'); if (tc) { trocarCliente(tc.dataset.cliente); return; }
     if (e.target.closest('#btn-sair')) { sair(); return; }
     const cp = e.target.closest('[data-copy]'); if (cp) { if (!navigator.clipboard) return; navigator.clipboard.writeText(cp.getAttribute('data-copy')).then(() => { const o = cp.textContent; cp.textContent = t('copiado'); setTimeout(() => cp.textContent = o, 1500); }).catch(() => {}); return; }
+    const ea = e.target.closest('button[data-es-ativo]');
+    if (ea) {
+      const cfg = (state.data && state.data.cliente && state.data.cliente.email_semanal) || {};
+      const novo = { ativo: ea.dataset.esAtivo === '1', dia: Number(cfg.dia != null ? cfg.dia : 1), hora: Number(cfg.hora != null ? cfg.hora : 8), para: Array.isArray(cfg.para) ? cfg.para : [] };
+      if (state.data && state.data.cliente) state.data.cliente.email_semanal = novo;
+      renderView();
+      if (!novo.ativo) salvarAjustes(novo);
+      return;
+    }
+    if (e.target.closest('#es-salvar')) {
+      const para = String((($('#es-para') || {}).value) || '').split(/[,;\s]+/).map(s => s.trim()).filter(s => /@/.test(s));
+      salvarAjustes({ ativo: true, dia: Number(($('#es-dia') || {}).value || 1), hora: Number(($('#es-hora') || {}).value || 8), para });
+      return;
+    }
+    const rq = e.target.closest('button[data-resultado]');
+    if (rq) { marcarResultado(rq.dataset.id, rq.dataset.resultado, rq.dataset.motivo || ''); return; }
     const row = e.target.closest('tr[data-href]'); if (row && !e.target.closest('a')) { window.open(row.dataset.href, '_blank', 'noopener'); }
+  });
+  document.addEventListener('change', (e) => {
+    const sp = e.target.closest('select[data-perdi]');
+    if (sp && sp.value) { marcarResultado(sp.dataset.perdi, 'perdi', sp.value); }
   });
   window.addEventListener('hashchange', () => { renderNav(); renderView(); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && state.proxima && Date.now() >= state.proxima) load(); });
@@ -659,7 +863,7 @@
     if (fontesFalhas.length) html += '<div class="un-section"><div class="un-banner">' + esc(t('fonteFalhou')) + '</div></div>';
     // Regra de honestidade (UNEVEN-CONTEXTO §5): cliente de demonstração aparece rotulado
     if (/-demo$/.test(d.cliente.id) || d.cliente.id === 'bella-miami' || /\(demo\)/i.test(d.cliente.nome)) html += '<p class="un-label" style="margin-bottom:var(--un-s4)">EXAMPLE · FICTIONAL BUSINESS AND NAMES · REAL LAYOUT</p>';
-    html += ({ visao: viewVisao, conversas: viewConversas, agenda: viewAgenda, cotacoes: viewCotacoes, saude: viewSaude })[cur](d);
+    html += ({ visao: viewVisao, conversas: viewConversas, agenda: viewAgenda, cotacoes: viewCotacoes, saude: viewSaude, ajustes: viewAjustes })[cur](d);
     html += '<p class="p-note">' + esc(t('nota')) + '</p>';
     v.innerHTML = html;
   }
@@ -667,24 +871,77 @@
     return '<div class="un-section un-grid un-grid--4">' + [1, 2, 3, 4].map(() => '<div class="un-card un-kpi"><p class="un-label un-skel">xxxxxxxx</p><div class="un-kpi__value un-skel">000</div></div>').join('') + '</div><div class="un-card" style="height:220px"></div>';
   }
 
+  // O bloco "Agora" só existe quando há o que fazer. Vazio não vira card vazio.
+  function blocoAgora(d) {
+    const itens = d.agora || [];
+    if (!itens.length) return '';
+    const dur = (m) => m == null ? '' : (m < 1 ? t('menosDeUmMin') : (m < 60 ? t('minutos', m) : t('horas', Math.floor(m / 60))));
+    const linha = (urg, txt, botao) => '<div class="p-agora__lin" data-urg="' + urg + '"><span class="p-agora__marca"></span>'
+      + '<span class="p-agora__txt">' + txt + '</span>' + (botao || '') + '</div>';
+    const btn = (href, rot) => '<a class="un-btn un-btn--sm" href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(rot) + '</a>';
+    const btnHash = (hash, rot) => '<a class="un-btn un-btn--ghost un-btn--sm" href="' + hash + '">' + esc(rot) + '</a>';
+    let h = '<div class="p-agora"><p class="p-agora__tit">' + esc(t('agoraTit')) + '</p>';
+    for (const i of itens) {
+      if (i.tipo === 'esperando') {
+        const urg = i.minutos == null ? 'baixa' : (i.minutos >= 60 ? 'alta' : (i.minutos >= 15 ? 'media' : 'baixa'));
+        h += linha(urg, esc(t('esperandoHa', i.nome, dur(i.minutos))), btn(i.link, t('abrirConversa')));
+      } else if (i.tipo === 'proximo') {
+        h += linha('baixa', '<strong>' + esc(fmtTime(i.quando)) + '</strong> — ' + esc(i.servico || '') + (i.nome ? ' · ' + esc(i.nome) : ''), btnHash('#/agenda', t('verAgenda')));
+      } else if (i.tipo === 'cancelamento') {
+        h += linha('media', esc(t('cancelouHoje', i.n)), btnHash('#/agenda', t('verAgenda')));
+      } else if (i.tipo === 'cotacao_parada') {
+        h += linha('alta', esc(t('cotacaoParada', i.n)), btnHash('#/cotacoes', t('verCotacoes')));
+      } else if (i.tipo === 'avaliacao') {
+      }
+    }
+    return h + '</div>';
+  }
+
   function viewVisao(d) {
-    const k = d.kpis, seg = d.cliente.tipo === 'seguros';
-    let h = '';
-    if (k.aguardando_humano > 0) h += '<div class="un-section"><div class="un-banner"><strong>' + esc(t('esperandoN', k.aguardando_humano)) + '</strong></div></div>';
+    const k = d.kpis, seg = d.cliente.tipo === 'seguros', p = d.cliente.persona || 'Bia';
+    const a = d.agenda || {};
+    let h = blocoAgora(d);
+
+    // HERÓI: um número responde "valeu a pena?". O resto é apoio.
+    if (seg) {
+      const pr = (d.cotacoes && d.cotacoes.prontas.length) || 0;
+      h += '<div class="p-heroi"><span class="p-heroi__n">' + fmtN(pr) + '</span><span class="p-heroi__rot">' + esc(t('heroiCotacoes')) + '</span></div>';
+      const emC = (d.cotacoes && d.cotacoes.em_coleta.length) || 0;
+      h += '<p class="p-heroi__sub">' + fmtN(emC) + ' ' + esc(t('emColeta')) + '</p>';
+    } else if (a.disponivel) {
+      h += '<div class="p-heroi"><span class="p-heroi__n">' + fmtN(a.marcados_pela_bia) + '</span><span class="p-heroi__rot">' + esc(t('heroiMarcadosP', p)) + '</span></div>';
+      h += '<p class="p-heroi__sub">' + (a.marcados_fora_expediente ? esc(t('foraExpediente', a.marcados_fora_expediente)) : '&nbsp;') + '</p>';
+    } else {
+      h += '<div class="p-heroi"><span class="p-heroi__n">' + esc(t('semDados')) + '</span></div>';
+      h += '<p class="p-heroi__sub">' + esc(a.motivo ? motivoTexto(a.motivo) : t('semDados')) + '</p>';
+    }
+
+    // Apoio. Volume de mensagens não é bom nem ruim: delta neutro (null).
     h += '<div class="un-section un-grid un-grid--4">';
     h += kpi(t('conversasPeriodo'), fmtN(k.conversas), delta(k.conversas, k.conversas_prev, true));
-    h += kpi(t('respondidas'), fmtN(k.respondidas), delta(k.respondidas, k.respondidas_prev, true));
-    if (seg) h += kpi(t('prontas'), fmtN(d.cotacoes ? d.cotacoes.prontas.length : null), '<span class="un-kpi__delta">' + fmtN(d.cotacoes ? d.cotacoes.em_coleta.length : 0) + ' ' + esc(t('emColeta')) + '</span>');
-    else h += kpi(t('agendamentos'), fmtN(d.agenda ? d.agenda.no_periodo : null), '<span class="un-kpi__delta">' + fmtN(d.agenda ? d.agenda.proximos_7d : 0) + ' · ' + esc(t('prox7')) + '</span>');
-    h += kpi(t('transbordos'), fmtN(k.transbordos), delta(k.transbordos, k.transbordos_prev, null));
-    h += '</div>';
-    h += '<div class="un-section un-grid un-grid--4">';
+    h += kpi(t('transbordos'), fmtN(k.transbordos), delta(k.transbordos, k.transbordos_prev, false));
     h += kpi(t('primeira'), fmtSeg(k.primeira_resposta_seg), delta(k.primeira_resposta_seg, k.primeira_resposta_prev, false));
-    h += kpi(t('recebidas'), fmtN(k.recebidas), delta(k.recebidas, k.recebidas_prev, true));
-    h += kpi(t('resolvidas'), fmtN(k.resolvidas), delta(k.resolvidas, k.resolvidas_prev, true));
     if (seg) h += kpi(t('comCorretor'), fmtN(d.cotacoes ? d.cotacoes.com_corretor : null), '');
-    else h += kpi(t('avaliacoes'), fmtN(d.agenda ? d.agenda.avaliacoes_pedidas : null), '');
+    else h += kpi(t('noPeriodoLabel'), fmtN(a.disponivel ? a.no_periodo : null), '<span class="un-kpi__delta">' + fmtN(a.disponivel ? a.proximos_7d : null) + ' · ' + esc(t('prox7')) + '</span>');
     h += '</div>';
+
+    h += '<div class="un-section un-grid un-grid--4">';
+    if (k.fora_expediente != null) h += kpi(t('foraExpedienteConv'), fmtN(k.fora_expediente), '');
+    if (d.novos) h += kpi(t('novosLabel'), fmtN(d.novos.novos), '<span class="un-kpi__delta">' + fmtN(d.novos.recorrentes) + ' ' + esc(t('recorrentesLabel')) + '</span>');
+    if (!seg && a.disponivel && a.ocupacao && a.ocupacao.pct != null) h += kpi(t('ocupacao'), a.ocupacao.pct + '<small>%</small>', '<span class="un-kpi__delta">' + esc(t('ocupacaoSub', a.ocupacao.horas_ocupadas, a.ocupacao.horas_abertas)) + '</span>');
+    if (!seg && a.disponivel) h += kpi(t('avaliacoes'), fmtN(a.avaliacoes_pedidas), '');
+    if (seg && d.cotacoes && d.cotacoes.resultado.conversao != null) h += kpi(t('conversao'), d.cotacoes.resultado.conversao + '<small>%</small>', '<span class="un-kpi__delta">' + d.cotacoes.resultado.fechou + ' / ' + (d.cotacoes.resultado.fechou + d.cotacoes.resultado.perdi) + '</span>');
+    h += kpi(t('respondidas'), fmtN(k.respondidas), delta(k.respondidas, k.respondidas_prev, null));
+    h += '</div>';
+
+    // Desfecho: no que deu cada conversa. Definição no `Montar` da API, não aqui.
+    if (!seg && a.desfecho) {
+      const D = a.desfecho, tot = Math.max(1, D.marcou + D.precisou_de_voce + D.resolvida + D.em_aberto);
+      const linhas = [['dMarcou', D.marcou], ['dPrecisou', D.precisou_de_voce], ['dResolvida', D.resolvida], ['dAberto', D.em_aberto]];
+      h += '<div class="un-section"><div class="un-card"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('desfecho')) + '</p>';
+      h += linhas.map(([ch, n]) => '<div class="un-bar-h" style="--v:' + (n / tot).toFixed(3) + '"><span>' + esc(t(ch)) + '</span><i></i><b>' + n + '</b></div>').join('');
+      h += '</div></div>';
+    }
     // gráfico + lateral
     const serie = d.serie || [];
     const max = Math.max(1, ...serie.map(s => s.v || 0));
@@ -709,9 +966,42 @@
       h += px.length ? '<ul class="un-list">' + px.slice(0, 6).map(e => '<li class="un-item"><span class="p-time">' + esc(fmtTime(e.quando)) + '</span><div><div class="un-item__title">' + esc(e.servico) + (e.nome ? ' — ' + esc(e.nome) : '') + '</div><div class="un-item__sub">' + esc(relDay(e.quando) || fmtDay(e.quando)) + '</div></div><span></span></li>').join('') + '</ul>' : '<p class="un-empty">' + esc(t('nadaProx')) + '</p>';
     }
     h += '</div></div>';
-    if (d.aguardando && d.aguardando.length) {
-      h += '<div class="un-section"><div class="un-card"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('esperando')) + '</p><ul class="un-list">' + d.aguardando.map(c => '<li class="un-item"><span class="un-avatar">' + esc(initials(c.nome)) + '</span><div><div class="un-item__title">' + esc(c.nome) + '</div><div class="un-item__text">' + esc(c.ultima) + '</div></div><div><div class="un-item__side">' + esc(fmtShort(c.quando)) + '</div><a class="un-btn un-btn--sm" style="margin-top:6px" href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(t('abrir')) + '</a></div></li>').join('') + '</ul></div></div>';
+    // Por canal: só aparece quando há mais de um. Com um canal só, é ruído.
+    if (d.canais && d.canais.length > 1) {
+      const mxc = Math.max(1, ...d.canais.map(c => c.n));
+      h += '<div class="un-section"><div class="un-card"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('porCanal')) + '</p>'
+        + d.canais.map(c => '<div class="un-bar-h" style="--v:' + (c.n / mxc).toFixed(3) + '"><span>' + esc(c.nome) + '</span><i></i><b>' + c.n + '</b></div>').join('')
+        + '</div></div>';
     }
+    return h;
+  }
+
+  // Grade da semana: o dono vê a agenda inteira e o que a recepção encheu.
+  function gradeSemana(d) {
+    const a = d.agenda || {};
+    const evs = (a.semana || []).slice();
+    const p = d.cliente.persona || 'Bia';
+    const hoje = dayKey(new Date().toISOString());
+    const dias = [];
+    for (let i = 0; i < 8; i++) {
+      const base = new Date(Date.now() + i * 864e5).toISOString();
+      dias.push({ k: dayKey(base), iso: base });
+    }
+    const porDia = {};
+    for (const e of evs) { const k = dayKey(e.inicio); (porDia[k] = porDia[k] || []).push(e); }
+    let h = '<div class="p-semana">';
+    for (const dia of dias) {
+      const lista = (porDia[dia.k] || []).sort((x, y) => String(x.inicio).localeCompare(String(y.inicio)));
+      h += '<div class="p-semana__dia"' + (dia.k === hoje ? ' data-hoje' : '') + '>';
+      h += '<div class="p-semana__cab">' + esc(fmt(dia.iso, { weekday: 'short', day: 'numeric' })) + '</div>';
+      h += lista.length ? lista.map(e => '<a class="p-ev"' + (e.origem === 'bia' ? ' data-bia' : '') + ' href="' + esc(e.link || '#') + '" target="_blank" rel="noopener">'
+        + '<span class="p-ev__h">' + esc(fmtTime(e.inicio)) + '</span>'
+        + '<span class="p-ev__s">' + esc(e.servico || '') + '</span></a>').join('')
+        : '<span class="p-semana__vazio">—</span>';
+      h += '</div>';
+    }
+    h += '</div>';
+    h += '<div class="p-legenda"><span><i data-bia></i>' + esc(t('peloBot', p)) + '</span><span><i></i>' + esc(t('porVoce')) + '</span></div>';
     return h;
   }
 
@@ -719,27 +1009,58 @@
     const cs = d.conversas || [];
     if (d.fontes && d.fontes.conversas === false) return '<div class="un-card"><p class="un-empty">' + esc(t('semDados')) + '</p></div>';
     if (!cs.length) return '<div class="un-card"><p class="un-empty">' + esc(t('nadaConversas')) + '</p></div>';
-    let h = '<p class="un-mono" style="margin-bottom:var(--un-s3)">' + esc(t('maisRecentes', cs.length)) + '</p><div class="un-card"><table class="un-table"><thead><tr><th>' + esc(t('cliente')) + '</th><th>' + esc(t('status')) + '</th><th class="p-hide-m">' + esc(t('ultima')) + '</th><th class="un-num p-hide-m">' + esc(t('quando')) + '</th><th class="p-hide-m"></th></tr></thead><tbody>';
-    h += cs.map(c => '<tr data-href="' + esc(c.link) + '"><td><div class="un-item__title">' + esc(c.nome) + '</div><div class="un-item__sub">' + esc(c.telefone) + (c.nao_lidas ? ' · ' + esc(t('naoLidas', c.nao_lidas)) : '') + '<span class="p-hide-d"> · ' + esc(fmtShort(c.quando)) + '</span></div><div class="un-item__text p-hide-d">' + esc(stripMd(c.ultima)) + '</div></td><td>' + statusPill(c) + '</td><td class="p-hide-m"><div class="un-item__text">' + (c.privada ? '<span class="un-mono">' + esc(t('notaInterna')) + ' · </span>' : '') + esc(stripMd(c.ultima)) + '</div></td><td class="un-num p-hide-m">' + esc(fmtShort(c.quando)) + '</td><td class="un-num p-hide-m"><a class="un-btn un-btn--ghost un-btn--sm" href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(t('abrir')) + '</a></td></tr>').join('');
+    // A coluna de canal só aparece quando o cliente tem mais de um (WhatsApp, Instagram…).
+    const multi = ((d.cliente && d.cliente.canais) || []).length > 1;
+    let h = '<p class="un-mono" style="margin-bottom:var(--un-s3)">' + esc(t('maisRecentes', cs.length)) + '</p><div class="un-card"><table class="un-table"><thead><tr><th>' + esc(t('cliente')) + '</th>' + (multi ? '<th class="p-hide-m">' + esc(t('canal')) + '</th>' : '') + '<th>' + esc(t('status')) + '</th><th class="p-hide-m">' + esc(t('ultima')) + '</th><th class="un-num p-hide-m">' + esc(t('quando')) + '</th><th class="p-hide-m"></th></tr></thead><tbody>';
+    h += cs.map(c => '<tr data-href="' + esc(c.link) + '"><td><div class="un-item__title">' + esc(c.nome) + '</div><div class="un-item__sub">' + esc(c.telefone) + (multi ? ' · ' + esc(c.canal_nome || '') : '') + (c.nao_lidas ? ' · ' + esc(t('naoLidas', c.nao_lidas)) : '') + '<span class="p-hide-d"> · ' + esc(fmtShort(c.quando)) + '</span></div><div class="un-item__text p-hide-d">' + esc(stripMd(c.ultima)) + '</div></td>' + (multi ? '<td class="p-hide-m"><span class="un-pill">' + esc(c.canal_nome || '') + '</span></td>' : '') + '<td>' + statusPill(c) + '</td><td class="p-hide-m"><div class="un-item__text">' + esc(stripMd(c.ultima)) + '</div></td><td class="un-num p-hide-m">' + esc(fmtShort(c.quando)) + '</td><td class="un-num p-hide-m"><a class="un-btn un-btn--ghost un-btn--sm" href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(t('abrir')) + '</a></td></tr>').join('');
     return h + '</tbody></table></div>';
   }
 
   function viewAgenda(d) {
-    const a = d.agenda || { proximos: [], por_servico: [] };
-    let h = '<div class="un-grid un-grid--main">';
+    const a = d.agenda || {};
+    const p = d.cliente.persona || 'Bia';
+    if (!a.disponivel) {
+      return '<div class="un-card"><p class="un-empty">' + esc(a.motivo ? motivoTexto(a.motivo) : t('semDados')) + '</p></div>';
+    }
+    const px = a.proximos || [], porServ = a.por_servico || [];
+
+    let h = '<div class="un-section"><div class="un-card">';
+    h += '<div class="un-section__head"><p class="un-label">' + esc(t('semana')) + '</p><span class="un-mono">' + esc(t('semanaSubP', p)) + '</span></div>';
+    h += (a.semana && a.semana.length) ? gradeSemana(d) : '<p class="un-empty">' + esc(t('agendaLivre')) + '</p>';
+    h += '</div></div>';
+
+    h += '<div class="un-grid un-grid--main">';
     h += '<div class="un-card"><p class="un-label" style="margin-bottom:var(--un-s4)">' + esc(t('proxHorarios')) + '</p>';
-    if (!a.proximos.length) h += '<p class="un-empty">' + esc(t('nadaProx')) + '</p>';
+    if (!px.length) h += '<p class="un-empty">' + esc(t('agendaLivre')) + '</p>';
     else {
-      const groups = {}; a.proximos.forEach(e => { const k = dayKey(e.quando); (groups[k] = groups[k] || []).push(e); });
-      h += Object.keys(groups).sort().map(k => { const es = groups[k]; const rd = relDay(es[0].quando); return '<div class="p-day"><p class="un-label">' + esc(fmtDay(es[0].quando)) + (rd ? ' · ' + esc(rd) : '') + '</p><ul class="un-list">' + es.map(e => '<li class="un-item"><span class="p-time">' + esc(fmtTime(e.quando)) + '</span><div><div class="un-item__title">' + esc(e.servico) + '</div><div class="un-item__sub">' + esc(e.nome || '') + '</div></div><span></span></li>').join('') + '</ul></div>'; }).join('');
+      const groups = {}; px.forEach(e => { const k = dayKey(e.quando); (groups[k] = groups[k] || []).push(e); });
+      h += Object.keys(groups).sort().map(k => { const es = groups[k]; const rd = relDay(es[0].quando); return '<div class="p-day"><p class="un-label">' + esc(fmtDay(es[0].quando)) + (rd ? ' · ' + esc(rd) : '') + '</p><ul class="un-list">' + es.map(e => '<li class="un-item"><span class="p-time">' + esc(fmtTime(e.quando)) + '</span><div><div class="un-item__title">' + esc(e.servico) + '</div><div class="un-item__sub">' + esc(e.nome || '') + (e.origem === 'bia' ? ' · ' + esc(t('peloBot', p)) : '') + '</div></div><span></span></li>').join('') + '</ul></div>'; }).join('');
     }
     h += '</div><div>';
-    h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('porServico')) + '</p>';
-    const mx = Math.max(1, ...a.por_servico.map(s => s.n));
-    h += a.por_servico.length ? a.por_servico.map(s => '<div class="un-bar-h" style="--v:' + (s.n / mx).toFixed(3) + '"><span>' + esc(s.nome) + '</span><i></i><b>' + s.n + '</b></div>').join('') : '<p class="un-empty">' + esc(t('nada')) + '</p>';
+    h += '<div class="un-grid un-grid--2" style="margin-bottom:var(--un-s4)">';
+    h += kpi(t('cancelados'), fmtN(a.cancelados), '');
+    h += kpi(t('lembretes'), fmtN(a.lembretes_enviados), '');
     h += '</div>';
-    h += kpi(t('avaliacoes'), fmtN(a.avaliacoes_pedidas), '');
+    h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('porServico')) + '</p>';
+    const mx = Math.max(1, ...porServ.map(s => s.n));
+    h += porServ.length ? porServ.map(s => '<div class="un-bar-h" style="--v:' + (s.n / mx).toFixed(3) + '"><span>' + esc(s.nome) + '</span><i></i><b>' + s.n + '</b></div>').join('') : '<p class="un-empty">' + esc(t('nada')) + '</p>';
+    h += '</div>';
+    h += blocoAvaliacoes(d);
     return h + '</div></div>';
+  }
+
+  // Avaliações do Google. Sem perfil conectado, diz isso — não mostra zero.
+  function blocoAvaliacoes(d) {
+    const av = d.avaliacoes || {};
+    let h = '<div class="un-card"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('avaliacoesTit')) + '</p>';
+    if (!av.disponivel) return h + '<p class="un-empty">' + esc(motivoTexto(av.motivo)) + '</p></div>';
+    h += '<div class="p-hero" style="margin-bottom:var(--un-s3)"><span class="un-kpi__value">' + (av.nota != null ? esc(String(av.nota)) : '—') + '</span>'
+      + '<span class="un-mono">' + fmtN(av.total) + ' · ' + esc(t('avaliacoesTit')) + '</span></div>';
+    // O Google só devolve as 5 mais recentes por esta via, e não diz quais o dono respondeu.
+    // Por isso aqui não existe "N sem resposta sua": é número que ninguém mediu.
+    if (av.parcial) h += '<p class="un-mono">' + esc(t('avaliacoesParcial')) + '</p>';
+    h += (av.recentes || []).slice(0, 3).map(r => '<div class="un-item" style="padding:8px 0"><div><div class="un-item__sub">' + esc(r.autor) + ' · ' + esc(String(r.nota || '')) + '★</div><div class="un-item__text">' + esc(r.texto) + '</div></div></div>').join('');
+    return h + '</div>';
   }
 
   function viewCotacoes(d) {
@@ -753,35 +1074,124 @@
       return '<div class="un-card" style="margin-bottom:var(--un-s4)"><div class="p-card-head"><div>' + (pronta ? '<span class="un-pill un-pill--solid">' + esc(t('prontaUma')) + '</span>' : '<span class="un-pill">' + esc(t('emColeta')) + '</span>') + ' <span class="un-h3" style="font-size:16px;margin-left:6px">' + esc(q.ramo || '—') + '</span></div><span class="un-mono">' + esc(q.nome) + ' · ' + esc(q.telefone) + ' · ' + esc(q.idioma) + ' · ' + esc(fmtShort(q.atualizado)) + '</span></div>'
         + '<table class="p-kv">' + (linhas || '<tr><td colspan="2">—</td></tr>') + '</table>'
         + (q.faltando && q.faltando.length ? '<p class="un-mono" style="margin-top:var(--un-s3);color:var(--un-warn)">' + esc(t('faltando')) + ': ' + esc(q.faltando.join(', ')) + (q.followups ? ' · ' + esc(t('cutucada')) : '') + '</p>' : '')
-        + '<div class="p-card-foot"><a class="un-btn un-btn--sm" href="' + esc(q.link) + '" target="_blank" rel="noopener">' + esc(t('abrirConversa')) + '</a><button type="button" class="un-btn un-btn--ghost un-btn--sm" data-copy="' + esc(texto) + '">' + esc(t('copiar')) + '</button></div></div>';
+        + '<div class="p-card-foot"><a class="un-btn un-btn--sm" href="' + esc(q.link) + '" target="_blank" rel="noopener">' + esc(t('abrirConversa')) + '</a><button type="button" class="un-btn un-btn--ghost un-btn--sm" data-copy="' + esc(texto) + '">' + esc(t('copiar')) + '</button>'
+        // Fechou ou perdeu: é o único número que a corretora realmente quer, e só o corretor sabe.
+        + (pronta ? (q.resultado
+          ? '<span class="un-pill' + (q.resultado === 'fechou' ? ' un-pill--ok' : '') + '">' + esc(q.resultado === 'fechou' ? t('fechou') : t('perdi')) + (q.motivo_perda ? ' · ' + esc(motivoPerdaTexto(q.motivo_perda)) : '') + '</span>'
+          : '<button type="button" class="un-btn un-btn--ghost un-btn--sm" data-resultado="fechou" data-id="' + esc(q.id) + '">' + esc(t('fechou')) + '</button>'
+            + '<select class="p-sel un-btn--sm" style="width:auto;height:32px" data-perdi="' + esc(q.id) + '">'
+            + '<option value="">' + esc(t('perdi')) + '…</option>'
+            + MOTIVOS_PERDA.map(m => '<option value="' + m + '">' + esc(motivoPerdaTexto(m)) + '</option>').join('')
+            + '</select>') : '')
+        + '</div></div>';
     };
     let h = '<div class="un-grid un-grid--main"><div>';
+    // Envelhecimento: cotação pronta parada é dinheiro esfriando.
+    const env = c.envelhecimento || {};
+    if ((env.ate_24h + env.de_1_a_3d + env.mais_3d) > 0) {
+      h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('idadeCotacao')) + '</p>';
+      const mxe = Math.max(1, env.ate_24h, env.de_1_a_3d, env.mais_3d);
+      h += [['ate24h', env.ate_24h], ['de1a3d', env.de_1_a_3d], ['mais3d', env.mais_3d]]
+        .map(([ch, n]) => '<div class="un-bar-h" style="--v:' + (n / mxe).toFixed(3) + '"><span>' + esc(t(ch)) + '</span><i></i><b>' + n + '</b></div>').join('');
+      h += '</div>';
+    }
     h += '<p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('prontasCotar')) + ' · ' + c.prontas.length + '</p>';
     h += c.prontas.length ? c.prontas.map(q => card(q, true)).join('') : '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-empty">' + esc(t('nadaProntas')) + '</p></div>';
     if (c.em_coleta.length) { h += '<p class="un-label" style="margin:var(--un-s6) 0 var(--un-s3)">' + esc(t('emColeta')) + ' · ' + c.em_coleta.length + '</p>' + c.em_coleta.map(q => card(q, false)).join(''); }
     h += '</div><div>';
     const mx = Math.max(1, ...c.por_ramo.map(s => s.n));
     h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('porRamo')) + '</p>' + (c.por_ramo.length ? c.por_ramo.map(s => '<div class="un-bar-h" style="--v:' + (s.n / mx).toFixed(3) + '"><span>' + esc(s.nome) + '</span><i></i><b>' + s.n + '</b></div>').join('') : '<p class="un-empty">' + esc(t('nada')) + '</p>') + '</div>';
+    // Onde a Lia trava: os campos que mais ficam faltando.
+    const cf = c.campos_que_faltam || [];
+    if (cf.length) {
+      const mxf = Math.max(1, ...cf.map(s => s.n));
+      h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('camposFaltam')) + '</p>'
+        + cf.map(s => '<div class="un-bar-h" style="--v:' + (s.n / mxf).toFixed(3) + '"><span>' + esc(String(s.nome).replace(/_/g, ' ')) + '</span><i></i><b>' + s.n + '</b></div>').join('') + '</div>';
+    }
     h += kpi(t('comCorretor'), fmtN(c.com_corretor), '');
     return h + '</div></div>';
   }
 
+  async function marcarResultado(id, resultado, motivo) {
+    try {
+      await fetch(API.replace('painel-dados', 'painel-ajustes'), {
+        method: 'POST', cache: 'no-store', credentials: 'include',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, (SESSAO && SESSAO.token) ? { 'x-painel-sessao': SESSAO.token } : {}),
+        body: JSON.stringify({ cliente: CLIENTE, token: TOKEN, cotacao: { conversa_id: Number(id), resultado, motivo } })
+      });
+    } catch (e) {}
+    load();
+  }
+
   function viewSaude(d) {
     const s = d.saude || {}; const semFonte = !!(d.fontes && d.fontes.execucoes === false); const ok = !semFonte && !s.falhas_24h;
-    let h = '<div class="un-card" style="margin-bottom:var(--un-s4)"><div class="p-hero"><span class="un-dot ' + (semFonte ? '' : (ok ? 'un-dot--ok un-dot--live' : 'un-dot--warn')) + '"></span><h2 class="un-h2">' + esc(semFonte ? t('sistemaSemDados') : (ok ? t('sistemaOk') : t('sistemaFalhas', s.falhas_24h))) + '</h2></div></div>';
-    h += '<div class="un-grid un-grid--3">';
-    h += kpi(t('ultimaFalha'), s.ultima_falha ? esc(fmtShort(s.ultima_falha)) : '—', '');
-    h += kpi(t('latencia'), state.latencia != null ? fmtN(state.latencia) + '<small>ms</small>' : '—', '');
+    // Linguagem de dona de salão, não de plantão de TI. "747 ms" não diz nada para ela.
+    let h = '<div class="un-card" style="margin-bottom:var(--un-s4)"><div class="p-hero"><span class="un-dot ' + (semFonte ? '' : (ok ? 'un-dot--ok un-dot--live' : 'un-dot--warn')) + '"></span><div>'
+      + '<h2 class="un-h2">' + esc(semFonte ? t('sistemaSemDados') : (ok ? t('tudoCerto') : t('houveFalha', s.falhas_24h))) + '</h2>'
+      + (semFonte ? '' : '<p class="un-mono" style="margin-top:6px">' + esc(ok ? t('tudoCertoSub') : t('houveFalhaSub')) + (!ok && s.ultima_falha ? ' · ' + esc(t('ultimaFalha')) + ' ' + esc(fmtShort(s.ultima_falha)) : '') + '</p>')
+      + '</div></div></div>';
+    h += '<div class="un-grid un-grid--2">';
     h += kpi(t('atualizado'), state.atualizadoEm ? esc(fmtClock(state.atualizadoEm)) : '—', '<span class="un-kpi__delta">' + esc(t('atualiza')) + '</span>', '<span class="un-seg" role="group">' + segRefresh() + '</span>');
+    h += kpi(t('fonte'), '<span style="font:var(--un-body-md);color:var(--un-body)">' + esc(t('fonteTxt')) + '</span>', '');
     h += '</div>';
     if (SESSAO) {
       h += '<div class="un-card" style="margin-top:var(--un-s4)"><p class="un-label">' + esc(t('conta')) + '</p>'
         + '<p class="un-body" style="margin-top:var(--un-s2)">' + esc(SESSAO.email || '') + '</p>'
         + '<p style="margin-top:var(--un-s3)"><button id="btn-sair" class="un-btn un-btn--ghost un-btn--sm" type="button">' + esc(t('sair')) + '</button></p></div>';
     }
-    h += '<div class="un-card" style="margin-top:var(--un-s4)"><p class="un-label">' + esc(t('fonte')) + '</p><p class="un-body" style="margin-top:var(--un-s2)">' + esc(t('fonteTxt')) + '</p></div>';
     if (!STANDALONE && location.protocol !== 'file:') h += '<div class="un-card" style="margin-top:var(--un-s4)"><p class="un-label">' + esc(t('instalar')) + '</p><p class="un-body" style="margin-top:var(--un-s2)">' + esc(t('instalarTxt')) + '</p></div>';
     return h;
+  }
+
+  // Ajustes: o que o cliente controla sozinho. Hoje, o resumo semanal.
+  const ajustes = { salvando: false, msg: '' };
+  function viewAjustes(d) {
+    const cfg = (d.cliente && d.cliente.email_semanal) || {};
+    const ativo = cfg.ativo === true;
+    const para = Array.isArray(cfg.para) ? cfg.para : [];
+    const dia = Number(cfg.dia != null ? cfg.dia : 1);
+    const hora = Number(cfg.hora != null ? cfg.hora : 8);
+    const nomes = t('dias7');
+    let h = '<div class="un-card"><p class="un-label">' + esc(t('emailSemanal')) + '</p>';
+    h += '<p class="un-body" style="margin-top:var(--un-s2);margin-bottom:var(--un-s5)">' + esc(t('emailSemanalTxt')) + '</p>';
+    h += '<div class="un-seg" role="group" style="margin-bottom:var(--un-s5)">'
+      + '<button type="button" data-es-ativo="1" aria-pressed="' + ativo + '">' + esc(t('receber')) + '</button>'
+      + '<button type="button" data-es-ativo="0" aria-pressed="' + (!ativo) + '">' + esc(t('naoReceber')) + '</button></div>';
+    if (ativo) {
+      h += '<div class="p-form">';
+      h += '<div><label for="es-para">' + esc(t('paraQuem')) + '</label>'
+        + '<input id="es-para" class="p-campo" type="text" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="' + esc(t('emailPh')) + '" value="' + esc(para.join(', ')) + '"></div>';
+      h += '<div class="p-linha2">';
+      h += '<div><label for="es-dia">' + esc(t('diaSemana')) + '</label><select id="es-dia" class="p-sel">'
+        + nomes.map((n, i) => '<option value="' + i + '"' + (i === dia ? ' selected' : '') + '>' + esc(n) + '</option>').join('') + '</select></div>';
+      h += '<div><label for="es-hora">' + esc(t('hora')) + '</label><select id="es-hora" class="p-sel">'
+        + Array.from({ length: 24 }, (_, i) => '<option value="' + i + '"' + (i === hora ? ' selected' : '') + '>' + String(i).padStart(2, '0') + ':00</option>').join('') + '</select></div>';
+      h += '</div>';
+      h += '<div><button id="es-salvar" class="un-btn" type="button"' + (ajustes.salvando ? ' disabled' : '') + '>' + esc(ajustes.salvando ? t('salvando') : t('salvar')) + '</button>'
+        + (ajustes.msg ? ' <span class="un-mono" style="margin-left:var(--un-s3)">' + esc(ajustes.msg) + '</span>' : '') + '</div>';
+      h += '</div>';
+    }
+    h += '</div>';
+    return h;
+  }
+
+  async function salvarAjustes(novo) {
+    ajustes.salvando = true; ajustes.msg = ''; renderView();
+    try {
+      const r = await fetch(API.replace('painel-dados', 'painel-ajustes'), {
+        method: 'POST', cache: 'no-store', credentials: 'include',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, (SESSAO && SESSAO.token) ? { 'x-painel-sessao': SESSAO.token } : {}),
+        body: JSON.stringify({ cliente: CLIENTE, token: TOKEN, email_semanal: novo })
+      });
+      const j = await r.json();
+      if (!j || !j.ok) throw new Error('falhou');
+      // O servidor normaliza (tira e-mail repetido, limita dia e hora, só liga com destinatário).
+      // Repintar com o que foi digitado mostraria uma coisa e guardaria outra: a tela usa o que voltou.
+      if (state.data && state.data.cliente && j.email_semanal !== undefined) state.data.cliente.email_semanal = j.email_semanal;
+      ajustes.msg = t('salvo');
+    } catch (e) { ajustes.msg = t('erroSalvar'); }
+    ajustes.salvando = false; renderView();
+    setTimeout(() => { if (ajustes.msg) { ajustes.msg = ''; renderView(); } }, 2500);
   }
 
   /* ---------- start ---------- */
