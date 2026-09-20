@@ -356,6 +356,8 @@
       avaliacoesParcial: 'O Google devolve só as 5 mais recentes por aqui.',
       mvFonteNaoRespondeu: 'A fonte não respondeu agora. Tente daqui a pouco.',
       mvSemPlaceId: 'Perfil do Google ainda não conectado. Quando conectar, a nota e as avaliações aparecem aqui.',
+      mvAindaNaoLido: 'Perfil conectado. A primeira leitura sai na próxima madrugada.',
+      lidoEm: (q) => 'lido ' + q,
       tudoCerto: 'Está tudo funcionando.', tudoCertoSub: 'Nenhuma falha nas automações nas últimas 24 horas.',
       houveFalha: (n) => n === 1 ? 'Houve 1 problema nas últimas 24 horas.' : 'Houve ' + n + ' problemas nas últimas 24 horas.',
       houveFalhaSub: 'A Uneven é avisada automaticamente quando isso acontece.',
@@ -392,6 +394,8 @@
       avaliacoesParcial: 'Google only returns the 5 most recent here.',
       mvFonteNaoRespondeu: 'The source did not answer just now. Try again shortly.',
       mvSemPlaceId: 'Google profile not connected yet. Once it is, the rating and reviews show up here.',
+      mvAindaNaoLido: 'Profile connected. First reading comes overnight.',
+      lidoEm: (q) => 'read ' + q,
       tudoCerto: 'Everything is working.', tudoCertoSub: 'No failures in the automations in the last 24 hours.',
       houveFalha: (n) => n === 1 ? 'There was 1 problem in the last 24 hours.' : 'There were ' + n + ' problems in the last 24 hours.',
       houveFalhaSub: 'Uneven is notified automatically when this happens.',
@@ -428,6 +432,8 @@
       avaliacoesParcial: 'Google solo devuelve las 5 más recientes por aquí.',
       mvFonteNaoRespondeu: 'La fuente no respondió ahora. Inténtalo en un rato.',
       mvSemPlaceId: 'Perfil de Google aún no conectado. Cuando se conecte, la nota y las reseñas aparecen aquí.',
+      mvAindaNaoLido: 'Perfil conectado. La primera lectura sale de madrugada.',
+      lidoEm: (q) => 'leído ' + q,
       tudoCerto: 'Todo está funcionando.', tudoCertoSub: 'Ningún fallo en las automatizaciones en las últimas 24 horas.',
       houveFalha: (n) => n === 1 ? 'Hubo 1 problema en las últimas 24 horas.' : 'Hubo ' + n + ' problemas en las últimas 24 horas.',
       houveFalhaSub: 'Uneven es avisada automáticamente cuando esto pasa.',
@@ -449,7 +455,7 @@
 
   // O backend manda código ('sem_place_id'), não frase. Assim a mesma causa aparece nos três
   // idiomas sem o n8n saber português — e um código novo não vira texto cru na tela do cliente.
-  const MOTIVOS = { sem_place_id: 'mvSemPlaceId', fonte_nao_respondeu: 'mvFonteNaoRespondeu' };
+  const MOTIVOS = { sem_place_id: 'mvSemPlaceId', fonte_nao_respondeu: 'mvFonteNaoRespondeu', ainda_nao_lido: 'mvAindaNaoLido' };
   const motivoTexto = (cod) => {
     if (!cod) return t('semDados');
     const chave = MOTIVOS[String(cod)];
@@ -1058,6 +1064,9 @@
       + '<span class="un-mono">' + fmtN(av.total) + ' · ' + esc(t('avaliacoesTit')) + '</span></div>';
     // O Google só devolve as 5 mais recentes por esta via, e não diz quais o dono respondeu.
     // Por isso aqui não existe "N sem resposta sua": é número que ninguém mediu.
+    // A nota vem da leitura diária guardada, não de uma consulta agora. Dizer quando foi lida
+    // é o que separa mostrar um dado de afirmar que ele é do minuto.
+    if (av.lido_em) h += '<p class="un-mono">' + esc(t('lidoEm', fmtShort(av.lido_em))) + '</p>';
     if (av.parcial) h += '<p class="un-mono">' + esc(t('avaliacoesParcial')) + '</p>';
     h += (av.recentes || []).slice(0, 3).map(r => '<div class="un-item" style="padding:8px 0"><div><div class="un-item__sub">' + esc(r.autor) + ' · ' + esc(String(r.nota || '')) + '★</div><div class="un-item__text">' + esc(r.texto) + '</div></div></div>').join('');
     return h + '</div>';
