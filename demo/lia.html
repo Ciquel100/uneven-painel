@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fale com a Lia — demo · Uneven Media</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css" data-ds="tokens">
+<link rel="stylesheet" href="../components.css" data-ds="components">
+<style>
+main{max-width:720px;margin:0 auto;padding:48px 20px 120px}
+.eyebrow{font:500 11px/1 var(--un-font-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--un-muted);margin:0 0 18px}
+h1{font:var(--un-h1);letter-spacing:-.03em;color:var(--un-txt);margin:0 0 10px}
+h1 span{color:var(--un-txt-2)}
+.lead{font:400 19px/1.55 var(--un-font-body);color:var(--un-body);margin:0 0 34px}
+h2{font:var(--un-h3);letter-spacing:-.02em;color:var(--un-txt);margin:30px 0 10px}
+ol{padding-left:20px;margin:0 0 22px;font:400 17px/1.6 var(--un-font-body);color:var(--un-body)}
+ol li{margin:0 0 8px}
+.tag{display:inline-block;font:500 10.5px/1 var(--un-font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--un-muted);border:1px solid var(--un-line);border-radius:999px;padding:6px 10px;margin:0 0 26px}
+.card{background:var(--un-panel);border:1px solid var(--un-line);border-radius:8px;padding:18px 20px;margin:0 0 14px;font:400 16px/1.55 var(--un-font-body);color:var(--un-body)}
+.card b{color:var(--un-txt);font-weight:600}
+.cta{display:inline-block;margin-top:8px;font:700 15px/1 var(--un-font-ui);color:var(--un-bg);background:var(--un-txt);padding:14px 20px;border-radius:6px;text-decoration:none}
+.foot{font:400 12px/1.6 var(--un-font-mono);color:var(--un-faint);margin-top:44px;border-top:1px solid var(--un-line-soft);padding-top:16px}
+</style></head><body><main>
+<p class="eyebrow">Uneven Media · demonstração</p>
+<h1>Fale com a Lia. <span>Ela coleta a cotação antes de o corretor chegar.</span></h1>
+<p class="lead">A Lia atende uma corretora de seguros fictícia, a Horizonte Seguros. Ela pergunta só o que falta para cotar (auto, residencial, vida), em português, inglês ou espanhol, nunca dá preço, e entrega a cotação pronta para o corretor. Abra o balão no canto da tela e peça uma cotação.</p>
+<span class="tag">Exemplo · negócio e nomes fictícios · a máquina é real</span>
+
+<h2>O que experimentar</h2>
+<ol>
+<li><b>Peça uma cotação:</b> "quero cotar seguro do meu carro" — ela pede o que falta, um campo por vez, sem repetir o que você já disse.</li>
+<li><b>Pergunte o preço:</b> ela não inventa valor. Responde que o corretor passa a proposta — é regra de produto.</li>
+<li><b>Diga que teve um sinistro:</b> ela pula a coleta e chama uma pessoa na hora.</li>
+<li><b>Complete a cotação:</b> quando os dados fecham, ela resume (com CPF mascarado) e a conversa fica com o corretor.</li>
+<li><b>Troque de idioma no meio</b> — ela acompanha.</li>
+</ol>
+
+<div class="card"><b>O que você não vê aqui, mas roda na corretora real:</b> lembrete de pendência dentro da janela de 24 h, aviso quando uma cotação pronta fica parada, renovação de apólice avisada com antecedência, e o painel do corretor com as cotações por idade e o que fechou ou perdeu.</div>
+<div class="card"><b>Quer isso no seu negócio?</b> Implantada em 7 a 10 dias, com os seus ramos e as suas perguntas, e cuidada por nós.<br><a class="cta" href="mailto:hello@unevenmedia.com?subject=Quero%20a%20Lia%20na%20minha%20corretora">Quero para o meu negócio</a></div>
+
+<p class="foot">Esta conversa acontece por um canal de site ligado à mesma máquina que atende no WhatsApp. Nenhuma mensagem sua vira contato de venda sem você pedir. Uneven Media · hello@unevenmedia.com</p>
+</main>
+<script>
+window.chatwootSettings = { position: 'right', type: 'expanded_bubble', launcherTitle: 'Falar com a Lia', locale: 'pt_BR', darkMode: 'auto' };
+(function(d,t){var BASE_URL="https://chatwoot.srv1923430.hstgr.cloud";var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.src=BASE_URL+"/packs/js/sdk.js";g.defer=true;g.async=true;s.parentNode.insertBefore(g,s);g.onload=function(){window.chatwootSDK.run({websiteToken:"p7MLT9Dhr4LZNosRupwRynA1",baseUrl:BASE_URL})}})(document,"script");
+</script>
+</body></html>
