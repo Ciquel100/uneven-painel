@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Talk to Bia — demo · Uneven Media</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css" data-ds="tokens">
+<link rel="stylesheet" href="../components.css" data-ds="components">
+<style>
+main{max-width:720px;margin:0 auto;padding:48px 20px 120px}
+.eyebrow{font:500 11px/1 var(--un-font-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--un-muted);margin:0 0 18px}
+h1{font:var(--un-h1);letter-spacing:-.03em;color:var(--un-txt);margin:0 0 10px}
+h1 span{color:var(--un-txt-2)}
+.lead{font:400 19px/1.55 var(--un-font-body);color:var(--un-body);margin:0 0 34px}
+h2{font:var(--un-h3);letter-spacing:-.02em;color:var(--un-txt);margin:30px 0 10px}
+ol{padding-left:20px;margin:0 0 22px;font:400 17px/1.6 var(--un-font-body);color:var(--un-body)}
+ol li{margin:0 0 8px}
+.tag{display:inline-block;font:500 10.5px/1 var(--un-font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--un-muted);border:1px solid var(--un-line);border-radius:999px;padding:6px 10px;margin:0 0 26px}
+.card{background:var(--un-panel);border:1px solid var(--un-line);border-radius:8px;padding:18px 20px;margin:0 0 14px;font:400 16px/1.55 var(--un-font-body);color:var(--un-body)}
+.card b{color:var(--un-txt);font-weight:600}
+.cta{display:inline-block;margin-top:8px;font:700 15px/1 var(--un-font-ui);color:var(--un-bg);background:var(--un-txt);padding:14px 20px;border-radius:6px;text-decoration:none}
+.foot{font:400 12px/1.6 var(--un-font-mono);color:var(--un-faint);margin-top:44px;border-top:1px solid var(--un-line-soft);padding-top:16px}
+</style></head><body><main>
+<p class="eyebrow">Uneven Media · live demo</p>
+<h1>Talk to Bia. <span>She answers like your best front-desk person.</span></h1>
+<p class="lead">Bia is the front desk of a fictional salon in Miami, Bella Miami Salon. She reads a real calendar, books the visit, answers in English, Spanish or Portuguese, and hands over to a person when you ask. Open the bubble in the corner and start typing. Same engine we configure for listings and showings.</p>
+<span class="tag">Example · fictional business and names · the engine is real</span>
+
+<h2>What to try</h2>
+<ol>
+<li><b>Ask for a time:</b> "do you have anything Friday afternoon?" — she replies with real open slots, computed from the calendar.</li>
+<li><b>Ask a price:</b> "how much is a haircut?" — she knows the services because they were entered, not invented.</li>
+<li><b>Book:</b> give the service, the day, the time and your first name. She only confirms after the calendar accepted it.</li>
+<li><b>Ask for a person:</b> "I want to talk to someone" — she says a person will take over and goes quiet. In a real business, the owner's phone buzzes at that moment.</li>
+<li><b>Switch language mid-conversation</b> — she follows.</li>
+</ol>
+
+<div class="card"><b>What you don't see here, but runs for a real client:</b> day-before reminder on WhatsApp, review request after the visit, a client card written when the conversation ends, and the owner's dashboard on the phone.</div>
+<div class="card"><b>For real estate:</b> the same engine qualifies the lead (buy or rent, area, budget, bedrooms, timeline, financing) and captures the preferred showing time — then hands it to the agent, 24 hours a day, in three languages.<br><a class="cta" href="mailto:hello@unevenmedia.com?subject=AI%20front%20desk%20for%20my%20listings">I want this for my listings</a></div>
+
+<p class="foot">This conversation runs through a website channel connected to the same engine that answers on WhatsApp. Nothing you type becomes a sales contact unless you ask. Uneven Media · hello@unevenmedia.com</p>
+</main>
+<script>
+window.chatwootSettings = { position: 'right', type: 'expanded_bubble', launcherTitle: 'Talk to Bia', locale: 'en', darkMode: 'auto' };
+(function(d,t){var BASE_URL="https://chatwoot.srv1923430.hstgr.cloud";var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.src=BASE_URL+"/packs/js/sdk.js";g.defer=true;g.async=true;s.parentNode.insertBefore(g,s);g.onload=function(){window.chatwootSDK.run({websiteToken:"1mzEdLJA3r46QEa3nHyYJx1k",baseUrl:BASE_URL})}})(document,"script");
+</script>
+</body></html>
