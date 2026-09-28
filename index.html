@@ -956,10 +956,9 @@
     h += '<div class="un-section un-grid un-grid--4">';
     h += kpi(t('conversasPeriodo'), fmtN(k.conversas), delta(k.conversas, k.conversas_prev, true));
     h += kpi(t('transbordos'), fmtN(k.transbordos), delta(k.transbordos, k.transbordos_prev, false));
-    h += kpi(t('primeira'), fmtSeg(k.primeira_resposta_mediana != null ? k.primeira_resposta_mediana : k.primeira_resposta_seg),
-      k.primeira_resposta_mediana != null
-        ? '<span class="un-kpi__delta">' + esc(t('mediaTb', fmtSeg(k.primeira_resposta_seg))) + '</span>'
-        : delta(k.primeira_resposta_seg, k.primeira_resposta_prev, false));
+    // 28/set: so a mediana medida por nos (1a mensagem do cliente -> 1a resposta, bot ou pessoa).
+    // O avg_first_response_time do Chatwoot conta so resposta HUMANA (dava "media: 25 h" com a Bia respondendo em segundos).
+    h += kpi(t('primeira'), fmtSeg(k.primeira_resposta_mediana), '');
     if (seg) h += kpi(t('comCorretor'), fmtN(d.cotacoes ? d.cotacoes.com_corretor : null), '');
     else h += kpi(t('noPeriodoLabel'), fmtN(a.disponivel ? a.no_periodo : null), '<span class="un-kpi__delta">' + fmtN(a.disponivel ? a.proximos_7d : null) + ' · ' + esc(t('prox7')) + '</span>');
     h += '</div>';
