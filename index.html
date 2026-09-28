@@ -354,8 +354,9 @@
       avaliacoesTit: 'Avaliações no Google', notaGoogle: 'nota no Google', semPerfil: 'Perfil do Google ainda não conectado. Quando conectar, a nota e as avaliações novas aparecem aqui.',
       agendaIndisponivel: (m) => 'Agenda indisponível: ' + m + '.',
       avaliacoesParcial: 'O Google devolve só as 5 mais recentes por aqui.',
-      medianaFrase: (t, n) => 'metade das pessoas recebeu resposta em menos de ' + t + ' (' + n + (n === 1 ? ' conversa' : ' conversas') + ')',
+      medianaFrase: (t, n) => 'metade das respostas saiu em menos de ' + t + ', contando da mensagem do cliente (' + n + (n === 1 ? ' resposta medida' : ' respostas medidas') + ')',
       mediaTb: (t) => 'média: ' + t,
+      respostaN: (n) => 'mediana de ' + n + (n === 1 ? ' resposta' : ' respostas'),
       semMediana: 'ainda sem conversa respondida no período',
       vsDatas: (de, ate) => 'vs. ' + de + ' a ' + ate,
       lembreteSemResposta: (n) => n === 1 ? '1 lembrete de amanhã ainda sem resposta' : n + ' lembretes de amanhã ainda sem resposta',
@@ -399,8 +400,9 @@
       avaliacoesTit: 'Google reviews', notaGoogle: 'Google rating', semPerfil: 'Google profile not connected yet. Once connected, your rating and new reviews show here.',
       agendaIndisponivel: (m) => 'Schedule unavailable: ' + m + '.',
       avaliacoesParcial: 'Google only returns the 5 most recent here.',
-      medianaFrase: (t, n) => 'half of your customers got an answer in under ' + t + ' (' + n + (n === 1 ? ' conversation' : ' conversations') + ')',
+      medianaFrase: (t, n) => 'half of the replies went out in under ' + t + ', counted from the customer\'s message (' + n + (n === 1 ? ' reply measured' : ' replies measured') + ')',
       mediaTb: (t) => 'average: ' + t,
+      respostaN: (n) => 'median of ' + n + (n === 1 ? ' reply' : ' replies'),
       semMediana: 'no answered conversation in this period yet',
       vsDatas: (de, ate) => 'vs. ' + de + ' to ' + ate,
       lembreteSemResposta: (n) => n === 1 ? "1 reminder for tomorrow still unanswered" : n + ' reminders for tomorrow still unanswered',
@@ -444,8 +446,9 @@
       avaliacoesTit: 'Reseñas en Google', notaGoogle: 'nota en Google', semPerfil: 'Perfil de Google aún no conectado. Cuando lo conectes, la nota y las reseñas nuevas aparecen acá.',
       agendaIndisponivel: (m) => 'Agenda no disponible: ' + m + '.',
       avaliacoesParcial: 'Google solo devuelve las 5 más recientes por aquí.',
-      medianaFrase: (t, n) => 'la mitad de las personas recibió respuesta en menos de ' + t + ' (' + n + (n === 1 ? ' conversación' : ' conversaciones') + ')',
+      medianaFrase: (t, n) => 'la mitad de las respuestas salió en menos de ' + t + ', desde el mensaje del cliente (' + n + (n === 1 ? ' respuesta medida' : ' respuestas medidas') + ')',
       mediaTb: (t) => 'promedio: ' + t,
+      respostaN: (n) => 'mediana de ' + n + (n === 1 ? ' respuesta' : ' respuestas'),
       semMediana: 'aún sin conversación respondida en el período',
       vsDatas: (de, ate) => 'vs. ' + de + ' a ' + ate,
       lembreteSemResposta: (n) => n === 1 ? '1 recordatorio de mañana aún sin respuesta' : n + ' recordatorios de mañana aún sin respuesta',
@@ -956,9 +959,9 @@
     h += '<div class="un-section un-grid un-grid--4">';
     h += kpi(t('conversasPeriodo'), fmtN(k.conversas), delta(k.conversas, k.conversas_prev, true));
     h += kpi(t('transbordos'), fmtN(k.transbordos), delta(k.transbordos, k.transbordos_prev, false));
-    // 28/set: so a mediana medida por nos (1a mensagem do cliente -> 1a resposta, bot ou pessoa).
-    // O avg_first_response_time do Chatwoot conta so resposta HUMANA (dava "media: 25 h" com a Bia respondendo em segundos).
-    h += kpi(t('primeira'), fmtSeg(k.primeira_resposta_mediana), '');
+    // 28/set: tempo de resposta REAL, medido por execucao (mensagem do cliente -> resposta enviada, bot incluido).
+    // O avg_first_response_time/first_reply do Chatwoot so contam resposta HUMANA (davam 19-25 h com a Bia respondendo em ~8 s).
+    h += kpi(t('primeira'), fmtSeg(k.resposta_mediana_seg), k.resposta_n ? '<span class="un-kpi__delta">' + esc(t('respostaN', k.resposta_n)) + '</span>' : '');
     if (seg) h += kpi(t('comCorretor'), fmtN(d.cotacoes ? d.cotacoes.com_corretor : null), '');
     else h += kpi(t('noPeriodoLabel'), fmtN(a.disponivel ? a.no_periodo : null), '<span class="un-kpi__delta">' + fmtN(a.disponivel ? a.proximos_7d : null) + ' · ' + esc(t('prox7')) + '</span>');
     h += '</div>';
@@ -1056,8 +1059,8 @@
     // Número em prosa: "metade das pessoas recebeu resposta em menos de 9 s". A contagem
     // entre parênteses deixa claro de quantas conversas ele saiu — sem isso vira slogan.
     const kk = d.kpis || {};
-    const fraseMediana = kk.primeira_resposta_mediana != null
-      ? '<p class="un-mono" style="margin-bottom:var(--un-s4)">' + esc(t('medianaFrase', fmtSeg(kk.primeira_resposta_mediana), kk.primeira_resposta_n || 0)) + '</p>'
+    const fraseMediana = kk.resposta_mediana_seg != null
+      ? '<p class="un-mono" style="margin-bottom:var(--un-s4)">' + esc(t('medianaFrase', fmtSeg(kk.resposta_mediana_seg), kk.resposta_n || 0)) + '</p>'
       : '<p class="un-mono" style="margin-bottom:var(--un-s4)">' + esc(t('semMediana')) + '</p>';
     let h = fraseMediana + '<p class="un-mono" style="margin-bottom:var(--un-s3)">' + esc(t('maisRecentes', cs.length)) + '</p><div class="un-card"><table class="un-table"><thead><tr><th>' + esc(t('cliente')) + '</th>' + (multi ? '<th class="p-hide-m">' + esc(t('canal')) + '</th>' : '') + '<th>' + esc(t('status')) + '</th><th class="p-hide-m">' + esc(t('ultima')) + '</th><th class="un-num p-hide-m">' + esc(t('quando')) + '</th><th class="p-hide-m"></th></tr></thead><tbody>';
     h += cs.map(c => '<tr data-href="' + esc(c.link) + '"><td><div class="un-item__title">' + esc(c.nome) + '</div><div class="un-item__sub">' + esc(c.telefone) + (multi ? ' · ' + esc(c.canal_nome || '') : '') + (c.nao_lidas ? ' · ' + esc(t('naoLidas', c.nao_lidas)) : '') + '<span class="p-hide-d"> · ' + esc(fmtShort(c.quando)) + '</span></div><div class="un-item__text p-hide-d">' + esc(stripMd(c.ultima)) + '</div></td>' + (multi ? '<td class="p-hide-m"><span class="un-pill">' + esc(c.canal_nome || '') + '</span></td>' : '') + '<td>' + statusPill(c) + '</td><td class="p-hide-m"><div class="un-item__text">' + esc(stripMd(c.ultima)) + '</div></td><td class="un-num p-hide-m">' + esc(fmtShort(c.quando)) + '</td><td class="un-num p-hide-m"><a class="un-btn un-btn--ghost un-btn--sm" href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(t('abrir')) + '</a></td></tr>').join('');
