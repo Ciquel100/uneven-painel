@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ficha de implantação · Uneven Media</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css" data-ds="tokens">
+<link rel="stylesheet" href="components.css" data-ds="components">
+<style>
+main{max-width:760px;margin:0 auto;padding:48px 20px 120px}
+.eyebrow{font:500 11px/1 var(--un-font-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--un-muted);margin:0 0 18px}
+h1{font:var(--un-h1);letter-spacing:-.03em;color:var(--un-txt);margin:0 0 10px}
+h1 span{color:var(--un-txt-2)}
+.lead{font:400 18px/1.55 var(--un-font-body);color:var(--un-body);margin:0 0 30px}
+fieldset{border:1px solid var(--un-line);border-radius:8px;background:var(--un-panel);padding:22px 22px 8px;margin:0 0 18px}
+legend{font:500 11px/1 var(--un-font-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--un-muted);padding:0 8px}
+.q{margin:0 0 18px}
+.q .un-label{display:block;margin:0 0 6px}
+.q small{display:block;font:400 14px/1.45 var(--un-font-body);color:var(--un-faint);margin:4px 0 0}
+.q .un-input,.q .un-select{width:100%;box-sizing:border-box}
+textarea.un-input{min-height:96px;resize:vertical;font:400 15px/1.5 var(--un-font-body)}
+.opt{display:flex;gap:10px;align-items:flex-start;font:400 16px/1.45 var(--un-font-body);color:var(--un-body);margin:0 0 10px}
+.opt input{margin-top:4px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.acoes{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.msg{font:400 16px/1.5 var(--un-font-body);color:var(--un-body)}
+.foot{font:400 12px/1.6 var(--un-font-mono);color:var(--un-faint);margin-top:40px;border-top:1px solid var(--un-line-soft);padding-top:16px}
+.so-lia{display:none}
+form[data-produto="lia"] .so-lia{display:block}
+form[data-produto="lia"] .so-bia{display:none}
+</style></head><body class="un-root"><main>
+<p class="eyebrow">Uneven Media · implantação</p>
+<h1>Ficha do seu negócio. <span>Uns 15 minutos, uma vez só.</span></h1>
+<p class="lead">É com isto que a sua recepção aprende o seu negócio. O que não souber agora, deixe em branco — a gente completa junto na sessão de conexão. <b>Nunca pedimos senha</b>: acesso a Meta e Google é feito com você, pela sua tela.</p>
+
+<form id="f" data-produto="bia" novalidate>
+<div class="hp" aria-hidden="true"><label>Não preencha<input name="empresa_site_2" tabindex="-1" autocomplete="off"></label></div>
+
+<fieldset><legend>01 · O negócio</legend>
+<div class="q"><label class="un-label" for="negocio">Nome do negócio *</label><input class="un-input" id="negocio" name="negocio" required></div>
+<div class="q"><label class="un-label" for="ramo">Ramo</label><input class="un-input" id="ramo" name="ramo" placeholder="clínica de estética, imobiliária, corretora de seguros…"></div>
+<div class="q"><label class="un-label" for="produto">O que você contratou</label>
+<select class="un-select" id="produto" name="produto"><option value="bia">Atendimento com agenda (a recepção marca horário)</option><option value="lia">Atendimento com qualificação (a recepção coleta os dados e passa para você)</option></select></div>
+<div class="q"><label class="un-label" for="cidade">Cidade e bairro</label><input class="un-input" id="cidade" name="cidade"></div>
+<div class="q"><label class="un-label" for="endereco">Endereço, do jeito que a recepção deve dizer</label><input class="un-input" id="endereco" name="endereco" placeholder="Rua X, 123 — tem estacionamento na rua de trás"><small>Se não atende no local, escreva isso.</small></div>
+<div class="q"><label class="un-label" for="site">Site e Instagram</label><input class="un-input" id="site" name="site"></div>
+<div class="q"><label class="un-label" for="cnpj">CNPJ</label><input class="un-input" id="cnpj" name="cnpj" inputmode="numeric"><small>A Meta pede para verificar o negócio no WhatsApp. Não usamos para mais nada.</small></div>
+</fieldset>
+
+<fieldset><legend>02 · Quem é quem</legend>
+<div class="q"><label class="un-label" for="responsavel">Seu nome *</label><input class="un-input" id="responsavel" name="responsavel" required></div>
+<div class="q"><label class="un-label" for="whatsapp_responsavel">Seu WhatsApp *</label><input class="un-input" id="whatsapp_responsavel" name="whatsapp_responsavel" inputmode="tel" required><small>É para onde vai o aviso quando um cliente pede para falar com uma pessoa.</small></div>
+<div class="q"><label class="un-label" for="email">Seu e-mail *</label><input class="un-input" id="email" name="email" type="email" required><small>Acesso ao painel e o resumo de segunda-feira.</small></div>
+<div class="q"><label class="un-label" for="equipe">Quem mais atende os clientes</label><textarea class="un-input" id="equipe" name="equipe" placeholder="Nome e o que faz. Ex.: Marina — dentista · Júlia — recepção"></textarea></div>
+</fieldset>
+
+<fieldset><legend>03 · Horário e pagamento</legend>
+<div class="q"><label class="un-label" for="horario">Dias e horários de atendimento</label><textarea class="un-input" id="horario" name="horario" placeholder="Seg a sex 9h–19h · Sáb 9h–13h · fecha domingo e feriado"></textarea></div>
+<div class="q"><label class="un-label" for="pagamento">Formas de pagamento</label><input class="un-input" id="pagamento" name="pagamento" placeholder="Pix, cartão, dinheiro…"></div>
+</fieldset>
+
+<fieldset class="so-bia"><legend>04 · Serviços</legend>
+<div class="q"><label class="un-label" for="servicos">Serviços — um por linha: nome | preço | duração</label><textarea class="un-input" id="servicos" name="servicos" placeholder="Avaliação | gratuita | 30 min&#10;Limpeza de pele | 180 | 60 min&#10;Botox | sob avaliação | 45 min"></textarea><small>Se o preço só sai depois de avaliar, escreva "sob avaliação": a recepção nunca inventa preço. Em odonto e estética é o que o conselho pede.</small></div>
+</fieldset>
+
+<fieldset class="so-lia"><legend>04 · O que a recepção coleta</legend>
+<div class="q"><label class="un-label" for="extra">O que você precisa saber de um cliente antes de falar com ele</label><textarea class="un-input" id="extra" name="extra" placeholder="Corretora: ramos que cota (auto, residencial, vida…) e o sistema de cotação que usa.&#10;Imobiliária: comprar ou alugar, regiões, faixa de preço, tipos de imóvel.&#10;Escritório: áreas que atende e documentos que pede."></textarea></div>
+</fieldset>
+
+<fieldset><legend>05 · Regras da casa</legend>
+<div class="q"><label class="un-label" for="politicas">Políticas</label><textarea class="un-input" id="politicas" name="politicas" placeholder="Tolerância de atraso, cancelamento com quanto tempo, sinal, idade mínima…"></textarea></div>
+<div class="q"><label class="un-label" for="faq">Perguntas que você mais recebe (e a resposta)</label><textarea class="un-input" id="faq" name="faq"></textarea></div>
+<div class="q"><label class="un-label" for="nao_fazer">O que a recepção NUNCA deve dizer ou prometer</label><textarea class="un-input" id="nao_fazer" name="nao_fazer" placeholder="Ex.: não dar desconto, não falar de concorrente, não prometer resultado."></textarea></div>
+</fieldset>
+
+<fieldset><legend>06 · Jeito de atender</legend>
+<div class="q"><label class="un-label" for="persona">Nome da recepcionista</label><input class="un-input" id="persona" name="persona" placeholder="Bia"><small>Ela se apresenta com este nome. Pode manter "Bia".</small></div>
+<div class="q"><label class="un-label" for="tom">Tom</label><select class="un-select" id="tom" name="tom"><option value="proximo">Próximo e leve ("oi, tudo bem?")</option><option value="cordial">Cordial ("olá, como posso ajudar?")</option><option value="formal">Formal ("prezado(a)")</option></select></div>
+<div class="q"><label class="un-label" for="idiomas">Idiomas</label><input class="un-input" id="idiomas" name="idiomas" value="português" placeholder="português, inglês, espanhol"></div>
+<div class="q"><label class="un-label" for="transbordo_quando">Quando a recepção deve passar para você</label><textarea class="un-input" id="transbordo_quando" name="transbordo_quando" placeholder="Sempre que pedirem uma pessoa · reclamação · pedido de desconto · caso de urgência…"></textarea></div>
+</fieldset>
+
+<fieldset><legend>07 · O número do WhatsApp</legend>
+<p class="msg" style="margin:0 0 14px">A recepção precisa de um número só dela, ligado ao WhatsApp oficial da Meta. Um número que já tem WhatsApp comum não pode ser usado ao mesmo tempo nos dois.</p>
+<label class="opt"><input type="radio" name="numero_opcao" value="chip_novo" checked> <span><b>Chip novo</b> (recomendado) — um pré-pago de ~R$ 15 só para a recepção. O seu WhatsApp atual continua igual.</span></label>
+<label class="opt"><input type="radio" name="numero_opcao" value="migrar"> <span><b>Usar o número que os clientes já conhecem</b> — ele sai do app WhatsApp Business e passa a funcionar só pela recepção e pelo nosso app. Decidimos isso juntos na sessão.</span></label>
+<label class="opt"><input type="radio" name="numero_opcao" value="nao_sei"> <span>Não sei ainda.</span></label>
+<div class="q"><label class="un-label" for="numero">Qual número</label><input class="un-input" id="numero" name="numero" inputmode="tel"><small>Se for chip novo e ainda não comprou, deixe em branco.</small></div>
+</fieldset>
+
+<fieldset class="so-bia"><legend>08 · Agenda</legend>
+<div class="q"><label class="un-label" for="agenda_tipo">Onde está a sua agenda hoje</label><select class="un-select" id="agenda_tipo" name="agenda_tipo"><option value="google">Google Agenda</option><option value="papel">Papel ou planilha</option><option value="sistema">Outro sistema (escreva abaixo)</option><option value="nenhuma">Não tenho agenda</option></select><small>Se não usa Google Agenda, a gente cria uma e você acompanha pelo celular.</small></div>
+<div class="q"><label class="un-label" for="agenda_email">E-mail da conta Google da agenda (ou o nome do sistema)</label><input class="un-input" id="agenda_email" name="agenda_email"></div>
+</fieldset>
+
+<fieldset><legend>09 · Google</legend>
+<div class="q"><label class="un-label" for="google_perfil">Link do seu perfil no Google (Maps)</label><input class="un-input" id="google_perfil" name="google_perfil"><small>É o link que a recepção manda quando pede avaliação depois da visita.</small></div>
+</fieldset>
+
+<fieldset><legend>10 · Aceite</legend>
+<label class="opt"><input type="checkbox" name="consentimento" value="sim"> <span>Autorizo a Uneven Media a usar estas informações para configurar e operar o atendimento do meu negócio. As conversas dos meus clientes passam pelos sistemas da Uneven só para prestar este serviço e não são usadas para mais nada.</span></label>
+</fieldset>
+
+<div class="acoes"><button class="un-btn" type="submit" id="enviar">Enviar ficha</button><span class="msg" id="msg" role="status"></span></div>
+</form>
+
+<p class="foot">Dúvida em alguma pergunta? Deixe em branco e siga. Uneven Media · hello@unevenmedia.com</p>
+</main>
+<script>
+(function () {
+  var f = document.getElementById('f'), msg = document.getElementById('msg'), bt = document.getElementById('enviar');
+  var prod = document.getElementById('produto');
+  var q = new URLSearchParams(location.search);
+  if (q.get('produto') === 'lia') prod.value = 'lia';
+  function syncProd() { f.setAttribute('data-produto', prod.value); }
+  prod.addEventListener('change', syncProd); syncProd();
+  f.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var d = {}; new FormData(f).forEach(function (v, k) { d[k] = v; });
+    d.consentimento = !!f.querySelector('input[name=consentimento]').checked;
+    if (!d.negocio || !d.responsavel || !d.email || !d.whatsapp_responsavel) { msg.textContent = 'Preencha nome do negócio, seu nome, WhatsApp e e-mail.'; return; }
+    if (!d.consentimento) { msg.textContent = 'Falta marcar o aceite no fim.'; return; }
+    bt.disabled = true; msg.textContent = 'Enviando…';
+    fetch('https://n8n-aib8.srv1923430.hstgr.cloud/webhook/onboarding', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) })
+      .then(function (r) { return r.json().catch(function () { return { ok: r.ok }; }); })
+      .then(function (j) {
+        if (j && j.ok) { f.innerHTML = '<fieldset><legend>Recebido</legend><p class="msg" style="margin:0 0 14px">Obrigado! A ficha chegou. O próximo passo é a sessão de conexão (30 a 45 minutos, por vídeo): ligamos o seu número e a sua agenda com você na tela. Vamos te chamar no WhatsApp para marcar.</p></fieldset>'; msg.textContent = ''; }
+        else { bt.disabled = false; msg.textContent = (j && j.erro) ? j.erro : 'Não consegui enviar. Tente de novo ou mande um e-mail para hello@unevenmedia.com.'; }
+      })
+      .catch(function () { bt.disabled = false; msg.textContent = 'Não consegui enviar. Tente de novo ou mande um e-mail para hello@unevenmedia.com.'; });
+  });
+})();
+</script>
+</body></html>
