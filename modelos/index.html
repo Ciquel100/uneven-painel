@@ -1,0 +1,1266 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Painel — Uneven Media</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- design system: no site (GitHub Pages) os dois CSS ficam na mesma pasta; no n8n estes <link> são substituídos pelo conteúdo (inline) -->
+<link rel="stylesheet" href="tokens.css" data-ds="tokens">
+<link rel="stylesheet" href="components.css" data-ds="components">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-512.png">
+<meta name="theme-color" content="#08090B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Painel">
+<style>
+  /* Específico do painel — só tokens, nada cru. */
+  /* Porta de entrada: tela própria, não um formulário dentro do painel. */
+  .p-deslogado .un-app, .p-deslogado .un-tabbar { display: none; }
+  .p-porta { min-height: 100svh; display: grid; place-items: center; padding: var(--un-s10) var(--un-s5); }
+  .p-porta__caixa { width: 100%; max-width: 380px; }
+  .p-porta__marca { font: var(--un-label); letter-spacing: var(--un-track-wordmark); text-transform: uppercase; color: var(--un-muted); margin: 0; }
+  .p-porta__regua { border: 0; border-top: 1px solid var(--un-hair-10); margin: var(--un-s5) 0 var(--un-s10); }
+  .p-porta__titulo { font: var(--un-h1); letter-spacing: var(--un-track-tight); color: var(--un-txt); margin: 0 0 var(--un-s4); }
+  .p-porta__titulo .un-dim { color: var(--un-txt-2); font-weight: inherit; }
+  .p-porta__texto { font: var(--un-body-md); color: var(--un-muted); margin: 0 0 var(--un-s8); }
+  .p-porta__texto strong { color: var(--un-body); font-weight: 400; }
+  .p-campo { width: 100%; height: 52px; padding: 0 var(--un-s4); font: var(--un-ui-md); font-size: 16px;
+             color: var(--un-txt); background: var(--un-panel); border: 1px solid var(--un-line);
+             border-radius: var(--un-r-md); transition: border-color var(--un-fast) var(--un-ease); }
+  .p-campo:focus { outline: none; border-color: var(--un-txt); }
+  .p-campo::placeholder { color: var(--un-faint); }
+  .p-porta__btn { width: 100%; height: 52px; margin-top: var(--un-s3); justify-content: center; font-size: 15px; }
+  .p-otp { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--un-s2); }
+  .p-otp input { width: 100%; height: 58px; text-align: center; font: var(--un-kpi); font-size: 24px;
+                 color: var(--un-txt); background: var(--un-panel); border: 1px solid var(--un-line);
+                 border-radius: var(--un-r-md); caret-color: var(--un-muted); padding: 0;
+                 transition: border-color var(--un-fast) var(--un-ease); }
+  .p-otp input:focus { outline: none; border-color: var(--un-txt); }
+  .p-otp input[data-cheio="sim"] { border-color: var(--un-hair-16); }
+  .p-porta__erro { font: var(--un-mono-sm); color: var(--un-bad); margin: var(--un-s4) 0 0; min-height: 18px; }
+  .p-porta__acoes { display: flex; gap: var(--un-s5); flex-wrap: wrap; margin-top: var(--un-s6); }
+  .p-porta__link { background: none; border: 0; padding: 0; font: var(--un-mono-sm); color: var(--un-muted);
+                   cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .p-porta__link:hover { color: var(--un-body); }
+  .p-porta__rodape { margin-top: var(--un-s16); padding-top: var(--un-s5); border-top: 1px solid var(--un-hair-10);
+                     font: var(--un-mono-sm); color: var(--un-faint); }
+  @media (max-width: 380px) { .p-otp { gap: 6px; } .p-otp input { height: 52px; font-size: 20px; } }
+  .p-client { display: flex; flex-direction: column; gap: var(--un-s2); }
+  .p-client .un-h3 { font-size: 17px; }
+  .p-side-foot { margin-top: auto; display: flex; flex-direction: column; gap: var(--un-s3); }
+  .p-status { display: flex; align-items: center; gap: 8px; font: var(--un-mono-sm); color: var(--un-muted); }
+  .p-view-title { display: flex; align-items: baseline; gap: var(--un-s3); min-width: 0; }
+  .p-view-title .un-label { display: none; }
+  .p-count { font: var(--un-mono-sm); color: var(--un-faint); min-width: 60px; text-align: right; }
+  .p-icon { width: 18px; height: 18px; flex: none; }
+  .p-day { margin-bottom: var(--un-s5); }
+  .p-day .un-label { margin-bottom: var(--un-s2); }
+  .p-time { font: 700 15px/1 var(--un-font-ui); color: var(--un-txt); min-width: 64px; letter-spacing: var(--un-track-tight); }
+  .p-kv { width: 100%; border-collapse: collapse; margin-top: var(--un-s3); }
+  .p-kv td { padding: 5px 0; border-bottom: 1px solid var(--un-line-soft); vertical-align: top; font: var(--un-body-md); font-size: 14.5px; }
+  .p-kv td:first-child { width: 40%; font: var(--un-label); letter-spacing: var(--un-track-label); text-transform: uppercase; color: var(--un-muted); padding-top: 8px; }
+  .p-kv tr:last-child td { border-bottom: 0; }
+  .p-card-head { display: flex; justify-content: space-between; gap: var(--un-s3); align-items: flex-start; flex-wrap: wrap; }
+  .p-card-foot { display: flex; gap: var(--un-s2); margin-top: var(--un-s4); flex-wrap: wrap; }
+  .p-hero { display: flex; align-items: center; gap: var(--un-s4); }
+  .p-hero .un-dot { width: 10px; height: 10px; }
+  .p-note { font: var(--un-mono-sm); color: var(--un-faint); margin-top: var(--un-s6); line-height: 1.7; }
+  .p-topbar-actions { display: flex; align-items: center; gap: var(--un-s3); }
+  .p-seg-short { display: none; }
+  @media (max-width: 900px) {
+    .p-topbar-actions .un-seg > button { padding: 7px 9px; }
+    .p-seg-short { display: inline; }
+    .p-view-title { flex-direction: column; gap: 2px; }
+    .p-view-title .un-label { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
+    .p-view-title .un-h3 { white-space: nowrap; }
+    .p-hide-m { display: none !important; }
+    .p-seg-long { display: none; }
+  }
+  .p-hide-d { display: none; }
+  @media (max-width: 900px) { .p-hide-d { display: initial; } div.p-hide-d { display: block; } div.p-hide-d.un-item__text { display: -webkit-box; } }
+
+  /* Bloco "Agora": o que pede ação. Some quando não há nada — vazio não é card vazio. */
+  .p-agora { border: 1px solid var(--un-line); border-radius: var(--un-r-md); background: var(--un-panel);
+             padding: var(--un-s4) var(--un-s5); margin-bottom: var(--un-s5); }
+  .p-agora__tit { font: var(--un-label); letter-spacing: var(--un-track-label); text-transform: uppercase;
+                  color: var(--un-muted); margin: 0 0 var(--un-s3); }
+  .p-agora__lin { display: flex; align-items: center; gap: var(--un-s3); padding: 7px 0; flex-wrap: wrap;
+                  border-top: 1px solid var(--un-line-soft); }
+  .p-agora__lin:first-of-type { border-top: 0; }
+  .p-agora__txt { font: var(--un-ui-md); color: var(--un-txt); flex: 1 1 auto; min-width: 0; }
+  .p-agora__lin[data-urg="alta"] .p-agora__marca { background: var(--un-bad); }
+  .p-agora__lin[data-urg="media"] .p-agora__marca { background: var(--un-warn); }
+  .p-agora__marca { width: 6px; height: 6px; border-radius: 50%; background: var(--un-muted); flex: none; }
+
+  /* Herói: um número responde "valeu a pena?". O resto é apoio. */
+  .p-heroi { display: flex; align-items: baseline; gap: var(--un-s4); flex-wrap: wrap; margin-bottom: var(--un-s2); }
+  .p-heroi__n { font: var(--un-kpi); font-size: clamp(44px, 9vw, 72px); line-height: 1; color: var(--un-txt);
+                letter-spacing: var(--un-track-tight); }
+  .p-heroi__rot { font: var(--un-body-md); color: var(--un-body); }
+  .p-heroi__sub { font: var(--un-mono-sm); color: var(--un-muted); margin: 0 0 var(--un-s6); }
+
+  /* Semana: grade de dias com os horários dentro. Não é calendário de verdade — é o que cabe no olho. */
+  .p-semana { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--un-s2); }
+  .p-semana__dia { min-width: 0; }
+  .p-semana__cab { font: var(--un-label); letter-spacing: 0; text-transform: none; color: var(--un-muted);
+                   padding-bottom: 6px; border-bottom: 1px solid var(--un-line); margin-bottom: 6px; white-space: nowrap;
+                   overflow: hidden; text-overflow: ellipsis; }
+  .p-semana__dia[data-hoje] .p-semana__cab { color: var(--un-txt); border-bottom-color: var(--un-txt); }
+  .p-ev { display: block; padding: 5px 6px; border-radius: var(--un-r-sm); margin-bottom: 4px;
+          border: 1px solid var(--un-line); background: transparent; text-decoration: none; }
+  .p-ev[data-bia] { border-color: var(--un-hair-16); background: var(--un-hair-06); }
+  .p-ev__h { font: var(--un-mono-sm); color: var(--un-muted); display: block; }
+  .p-ev__s { font: var(--un-ui-sm); font-size: 12.5px; color: var(--un-txt); display: block;
+             overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .p-semana__vazio { font: var(--un-mono-sm); color: var(--un-faint); }
+  .p-legenda { display: flex; gap: var(--un-s4); flex-wrap: wrap; margin-top: var(--un-s4); }
+  .p-legenda span { font: var(--un-mono-sm); color: var(--un-muted); display: inline-flex; align-items: center; gap: 6px; }
+  .p-legenda i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--un-line); display: inline-block; }
+  .p-legenda i[data-bia] { border-color: var(--un-hair-16); background: var(--un-hair-06); }
+  @media (max-width: 900px) { .p-semana { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .p-semana { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  /* Ajustes */
+  .p-form { display: flex; flex-direction: column; gap: var(--un-s4); max-width: 460px; }
+  .p-form label { font: var(--un-label); letter-spacing: var(--un-track-label); text-transform: uppercase; color: var(--un-muted); display: block; margin-bottom: 6px; }
+  .p-sel { height: 44px; padding: 0 var(--un-s3); font: var(--un-ui-md); font-size: 15px; color: var(--un-txt);
+           background: var(--un-panel); border: 1px solid var(--un-line); border-radius: var(--un-r-md); width: 100%; }
+  .p-linha2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--un-s3); }
+</style>
+</head>
+<body class="un-root">
+
+<div class="un-app" id="app">
+  <aside class="un-side">
+    <div class="p-client">
+      <p class="un-label" id="s-persona">—</p>
+      <h1 class="un-h3" id="s-nome"><span class="un-skel">Carregando o painel</span></h1>
+      <p class="un-mono" id="s-sub"></p>
+    </div>
+    <nav class="un-nav" id="nav"></nav>
+    <div class="p-side-foot">
+      <p class="un-label" id="s-refresh-label">atualiza a cada</p>
+      <div class="un-seg" id="seg-refresh" role="group"></div>
+      <div class="p-status"><span class="un-dot" id="s-dot"></span><span id="s-status">—</span></div>
+      <a class="un-wordmark" href="https://unevenmedia.com" target="_blank" rel="noopener">Uneven Media</a>
+    </div>
+  </aside>
+
+  <main class="un-main">
+    <header class="un-topbar">
+      <div class="p-view-title">
+        <p class="un-label" id="t-persona"></p>
+        <h2 class="un-h3" id="t-title">—</h2>
+      </div>
+      <div class="un-topbar__grow"></div>
+      <div class="p-topbar-actions">
+        <div class="un-seg" id="seg-dias" role="group"></div>
+        <button class="un-btn un-btn--ghost un-btn--sm" id="btn-refresh" type="button">
+          <svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+          <span class="p-hide-m" id="btn-refresh-txt">atualizar</span>
+        </button>
+        <div class="un-seg" id="seg-cliente" role="group" hidden></div>
+        <span class="p-count p-hide-m" id="t-countdown"></span>
+      </div>
+    </header>
+    <div class="un-content" id="view"></div>
+  </main>
+</div>
+<nav class="un-tabbar" id="tabbar"></nav>
+<div class="p-porta" id="porta" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- config ---------- */
+  const Q = new URLSearchParams(location.search);
+  // Dentro do n8n (painel reserva) a API é a própria origem. Fora dele usamos
+  // api.unevenmedia.com: mesmo domínio-raiz do painel, então a sessão vira um
+  // cookie primeiro-parte que o Safari não apaga e que script nenhum lê.
+  const API = (/hstgr\.cloud$/.test(location.hostname))
+    ? '/webhook/painel-dados'
+    : 'https://api.unevenmedia.com/webhook/painel-dados';
+  const AUTH = API.replace('painel-dados', 'painel-acesso');
+  // Acesso: vem na URL na primeira vez; fora do n8n (origem normal) fica guardado no aparelho,
+  // para o app instalado abrir sem o link. ?sair=1 apaga. No n8n (origem opaca) o storage não existe — try/catch.
+  // O acesso pode vir na query (?cliente=&token=) ou depois do # — o fragmento não vai
+  // para o servidor nem para os logs. Guardar no aparelho é conveniência, nunca a única via:
+  // no iPhone o Safari apaga o storage depois de ~7 dias sem visita, e o ícone da tela de
+  // início abre com storage próprio. Por isso existe a tela de colar o link.
+  const H = new URLSearchParams(String(location.hash || '').replace(/^#\/?/, ''));
+  let CLIENTE = Q.get('cliente') || H.get('cliente') || '', TOKEN = Q.get('token') || H.get('token') || '';
+  if (H.get('cliente') && H.get('token')) { try { history.replaceState(null, '', location.pathname + location.search + '#/visao'); } catch (e) {} }
+  try {
+    if (Q.get('sair')) { localStorage.removeItem('un-painel'); CLIENTE = ''; TOKEN = ''; }
+    else if (CLIENTE && TOKEN) localStorage.setItem('un-painel', JSON.stringify({ cliente: CLIENTE, token: TOKEN }));
+    else { const s = JSON.parse(localStorage.getItem('un-painel') || 'null'); if (s && s.cliente && s.token) { CLIENTE = s.cliente; TOKEN = s.token; } }
+  } catch (e) {}
+  // Sessão do login por código. É o caminho normal; o par cliente+token na URL
+  // continua valendo durante a transição e sai de circulação depois.
+  const CHAVE_SESSAO = 'un-painel-sessao';
+  let SESSAO = null;
+  const lerSessao = () => { try { return JSON.parse(localStorage.getItem(CHAVE_SESSAO) || 'null'); } catch (e) { return null; } };
+  const gravarSessao = (s) => { try { s ? localStorage.setItem(CHAVE_SESSAO, JSON.stringify(s)) : localStorage.removeItem(CHAVE_SESSAO); } catch (e) {} };
+  // Vale tanto a sessão com token guardado quanto a que só existe no cookie.
+  const sessaoViva = (s) => !!(s && (s.token || s.viaCookie) && (!s.expira_em || new Date(s.expira_em).getTime() > Date.now()));
+  SESSAO = lerSessao();
+  if (SESSAO && !sessaoViva(SESSAO)) { SESSAO = null; gravarSessao(null); }
+  if (Q.get('sair')) { SESSAO = null; gravarSessao(null); }
+  if (SESSAO) {
+    const lista = (SESSAO.clientes || []).map(c => c.cliente_id);
+    if (!SESSAO.escolhido || !lista.includes(SESSAO.escolhido)) SESSAO.escolhido = lista[0] || '';
+    CLIENTE = SESSAO.escolhido; TOKEN = '';
+  }
+  const STANDALONE = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  const state = {
+    dias: [7, 14, 30].includes(Number(Q.get('dias'))) ? Number(Q.get('dias')) : 7,
+    refreshMin: [2, 5, 15].includes(Number(Q.get('refresh'))) ? Number(Q.get('refresh')) : 5,
+    lang: ['pt', 'en', 'es'].includes(Q.get('lang')) ? Q.get('lang') : 'pt',
+    data: null, loading: false, erro: null, atualizadoEm: null, proxima: null, timer: null, tick: null, latencia: null
+  };
+
+  /* ---------- i18n ---------- */
+  const T = {
+    pt: {
+      visao: 'Visão geral', conversas: 'Conversas', agenda: 'Agenda', cotacoes: 'Cotações', saude: 'Sistema',
+      atualiza: 'atualiza a cada', min: 'min', atualizar: 'atualizar', atualizado: 'atualizado às', em: 'em', agora: 'agora',
+      dias: (n) => n + ' dias', conversasPeriodo: 'conversas no período', respondidas: 'mensagens enviadas', recebidas: 'mensagens recebidas',
+      agendamentos: 'atendimentos realizados', prox7: 'próximos 7 dias', transbordos: 'passaram para você', primeira: 'tempo até a 1ª resposta',
+      fonteFalhou: 'Uma das fontes não respondeu nesta atualização. Onde está "sem dados", o número não foi lido — não é zero.', sistemaSemDados: 'Sem leitura das automações nesta atualização.',
+      nadaConversas: 'Nenhuma conversa ainda.', maisRecentes: (n) => 'as ' + n + ' conversas mais recentes',
+      instalar: 'no celular', instalarTxt: 'Abra este link no celular e use "Adicionar à tela inicial" no menu do navegador. O painel vira um ícone e abre sem precisar do link.',
+      resolvidas: 'conversas encerradas', prontas: 'cotações prontas', prontaUma: 'pronta para cotar', emColeta: 'em coleta', comCorretor: 'com o corretor',
+      vsAnterior: 'vs. período anterior', semBase: 'sem base anterior', porDia: 'Conversas por dia', proxHorarios: 'Próximos horários',
+      prontasCotar: 'Prontas para cotar', esperando: 'Esperando você', esperandoN: (n) => n === 1 ? '1 conversa esperando a sua resposta.' : n + ' conversas esperando a sua resposta.',
+      nada: 'Nada por aqui neste período.', nadaProx: 'Nenhum horário marcado para os próximos 7 dias.', nadaProntas: 'Nenhuma cotação pronta agora.',
+      abrir: 'Abrir', abrirConversa: 'Abrir conversa', copiar: 'Copiar ficha', copiado: 'Copiado', cliente: 'Cliente', status: 'Status', ultima: 'Última mensagem', quando: 'Quando',
+      stComBia: (p) => 'com ' + p, stComVoce: 'com você', stEncerrada: 'encerrada', stSnoozed: 'adiada', notaInterna: 'nota interna',
+      porServico: 'Por serviço', avaliacoes: 'pedidos de avaliação enviados', porRamo: 'Por ramo', faltando: 'Faltando', cutucada: 'lembrete enviado',
+      sistemaOk: 'Nenhuma falha registrada nas automações nas últimas 24 horas.', sistemaFalhas: (n) => n === 1 ? '1 falha registrada nas automações nas últimas 24 horas.' : n + ' falhas registradas nas automações nas últimas 24 horas.',
+      ultimaFalha: 'última falha', fonte: 'fonte dos dados', fonteTxt: 'caixa de entrada, agenda e automações — lidos ao vivo a cada atualização',
+      erroCarregar: 'Não consegui atualizar agora. Mostrando os últimos dados.', erroAuth: 'Este link não é válido. Peça um novo para a Uneven.', carregando: 'Carregando',
+      semLink: 'O seu acesso fica no fim do link que a Uneven enviou. Cole o link aqui embaixo e pronto — depois disso este aparelho lembra.', semLinkCurto: 'falta o link de acesso',
+      colarPh: 'cole aqui o link que a Uneven enviou', colarTit: 'Acesso', entrar: 'Entrar', colarErro: 'Esse endereço não traz o acesso. Copie de novo, inteiro, da mensagem da Uneven.',
+      entrarTit: 'Entrar no painel', entrarTxt: 'Digite o seu e-mail. Mandamos um código de 6 dígitos.',
+      campoEmail: 'E-mail', enviarCodigo: 'Enviar código', enviando: 'Enviando…',
+      codigoTit: 'Código enviado', codigoTxt1: 'Enviamos um código de 6 dígitos para', codigoTxt2: 'Se esse endereço tiver acesso, o código chega em instantes e vale 10 minutos.',
+      rodapePorta: 'Acesso por código. Nenhuma senha para lembrar.',
+      campoCodigo: 'Código', conferindo: 'Conferindo…', reenviar: 'Enviar outro código', trocarEmail: 'Usar outro e-mail',
+      temLink: 'Tenho um link de acesso', conta: 'Conta', sair: 'Sair', qualPainel: 'Qual painel',
+      eEmailInvalido: 'Esse e-mail não parece certo.', eCodigoInvalido: 'Código errado.', eRestam: (n) => ' Restam ' + n + '.',
+      eCodigoExpirado: 'Esse código venceu. Peça outro.', eTentativas: 'Tentativas demais. Peça um código novo.',
+      eSemAcesso: 'Este e-mail não tem painel liberado.', eRede: 'Não consegui falar com o servidor. Tente de novo.',
+      dicaIcone: 'Para deixar o ícone no celular: abra o link completo primeiro e só então use "Adicionar à tela de início".',
+      hoje: 'hoje', amanha: 'amanhã', semDados: 'sem dados', nota: 'Números lidos direto do sistema. O que não foi medido não aparece.',
+      seg: 's', naoLidas: (n) => n + ' não lida' + (n === 1 ? '' : 's'), de: { cliente: 'cliente', nos: '' }
+    },
+    en: {
+      visao: 'Overview', conversas: 'Conversations', agenda: 'Schedule', cotacoes: 'Quotes', saude: 'System',
+      atualiza: 'refreshes every', min: 'min', atualizar: 'refresh', atualizado: 'updated at', em: 'in', agora: 'now',
+      dias: (n) => n + ' days', conversasPeriodo: 'conversations in period', respondidas: 'messages sent', recebidas: 'messages received',
+      agendamentos: 'appointments completed', prox7: 'next 7 days', transbordos: 'handed to you', primeira: 'time to first reply',
+      fonteFalhou: 'One data source did not respond on this refresh. Where it says "no data", the number was not read — it is not zero.', sistemaSemDados: 'No reading from the automations on this refresh.',
+      nadaConversas: 'No conversations yet.', maisRecentes: (n) => 'the ' + n + ' most recent conversations',
+      instalar: 'on your phone', instalarTxt: 'Open this link on your phone and use "Add to Home Screen" in the browser menu. The dashboard becomes an icon and opens without the link.',
+      resolvidas: 'conversations closed', prontas: 'quotes ready', prontaUma: 'ready to quote', emColeta: 'collecting', comCorretor: 'with the broker',
+      vsAnterior: 'vs. previous period', semBase: 'no previous period', porDia: 'Conversations per day', proxHorarios: 'Upcoming appointments',
+      prontasCotar: 'Ready to quote', esperando: 'Waiting for you', esperandoN: (n) => n === 1 ? '1 conversation is waiting for your reply.' : n + ' conversations are waiting for your reply.',
+      nada: 'Nothing here for this period.', nadaProx: 'No appointments in the next 7 days.', nadaProntas: 'No quotes ready right now.',
+      abrir: 'Open', abrirConversa: 'Open conversation', copiar: 'Copy details', copiado: 'Copied', cliente: 'Customer', status: 'Status', ultima: 'Last message', quando: 'When',
+      stComBia: (p) => 'with ' + p, stComVoce: 'with you', stEncerrada: 'closed', stSnoozed: 'snoozed', notaInterna: 'internal note',
+      porServico: 'By service', avaliacoes: 'review requests sent', porRamo: 'By line', faltando: 'Missing', cutucada: 'reminder sent',
+      sistemaOk: 'No failures recorded in the automations in the last 24 hours.', sistemaFalhas: (n) => n === 1 ? '1 failure recorded in the automations in the last 24 hours.' : n + ' failures recorded in the automations in the last 24 hours.',
+      ultimaFalha: 'last failure', fonte: 'data source', fonteTxt: 'inbox, calendar and automations — read live on every refresh',
+      erroCarregar: "Couldn't refresh right now. Showing the latest data.", erroAuth: 'This link is not valid. Ask Uneven for a new one.', carregando: 'Loading',
+      semLink: 'Your access is at the end of the link Uneven sent you. Paste that link below — after that, this device remembers it.', semLinkCurto: 'access link missing',
+      colarPh: 'paste the link Uneven sent you', colarTit: 'Access', entrar: 'Enter', colarErro: 'That address has no access in it. Copy the whole link again from the Uneven message.',
+      entrarTit: 'Sign in to the dashboard', entrarTxt: 'Enter your email. We send a 6-digit code.',
+      campoEmail: 'Email', enviarCodigo: 'Send code', enviando: 'Sending…',
+      codigoTit: 'Code sent', codigoTxt1: 'We sent a 6-digit code to', codigoTxt2: 'If that address has access, the code arrives in a moment and is good for 10 minutes.',
+      rodapePorta: 'Code-based access. No password to remember.',
+      campoCodigo: 'Code', conferindo: 'Checking…', reenviar: 'Send another code', trocarEmail: 'Use another email',
+      temLink: 'I have an access link', conta: 'Account', sair: 'Sign out', qualPainel: 'Which dashboard',
+      eEmailInvalido: 'That email does not look right.', eCodigoInvalido: 'Wrong code.', eRestam: (n) => ' ' + n + ' left.',
+      eCodigoExpirado: 'That code expired. Ask for another.', eTentativas: 'Too many tries. Ask for a new code.',
+      eSemAcesso: 'This email has no dashboard yet.', eRede: 'Could not reach the server. Try again.',
+      dicaIcone: 'To keep the icon on your phone: open the full link first, then use "Add to Home Screen".',
+      hoje: 'today', amanha: 'tomorrow', semDados: 'no data', nota: 'Numbers are read straight from the system. What was not measured is not shown.',
+      seg: 's', naoLidas: (n) => n + ' unread', de: { cliente: 'customer', nos: '' }
+    },
+    es: {
+      visao: 'Resumen', conversas: 'Conversaciones', agenda: 'Agenda', cotacoes: 'Cotizaciones', saude: 'Sistema',
+      atualiza: 'se actualiza cada', min: 'min', atualizar: 'actualizar', atualizado: 'actualizado a las', em: 'en', agora: 'ahora',
+      dias: (n) => n + ' días', conversasPeriodo: 'conversaciones en el período', respondidas: 'mensajes enviados', recebidas: 'mensajes recibidos',
+      agendamentos: 'citas realizadas', prox7: 'próximos 7 días', transbordos: 'pasaron a ti', primeira: 'tiempo hasta la 1ª respuesta',
+      fonteFalhou: 'Una de las fuentes no respondió en esta actualización. Donde dice "sin datos", el número no se leyó — no es cero.', sistemaSemDados: 'Sin lectura de las automatizaciones en esta actualización.',
+      nadaConversas: 'Todavía no hay conversaciones.', maisRecentes: (n) => 'las ' + n + ' conversaciones más recientes',
+      instalar: 'en el celular', instalarTxt: 'Abre este enlace en el celular y usa "Agregar a la pantalla de inicio" en el menú del navegador. El panel se vuelve un ícono y abre sin el enlace.',
+      resolvidas: 'conversaciones cerradas', prontas: 'cotizaciones listas', prontaUma: 'lista para cotizar', emColeta: 'en recolección', comCorretor: 'con el corredor',
+      vsAnterior: 'vs. período anterior', semBase: 'sin período anterior', porDia: 'Conversaciones por día', proxHorarios: 'Próximas citas',
+      prontasCotar: 'Listas para cotizar', esperando: 'Esperándote', esperandoN: (n) => n === 1 ? '1 conversación espera tu respuesta.' : n + ' conversaciones esperan tu respuesta.',
+      nada: 'Nada por aquí en este período.', nadaProx: 'Sin citas en los próximos 7 días.', nadaProntas: 'Ninguna cotización lista ahora.',
+      abrir: 'Abrir', abrirConversa: 'Abrir conversación', copiar: 'Copiar ficha', copiado: 'Copiado', cliente: 'Cliente', status: 'Estado', ultima: 'Último mensaje', quando: 'Cuándo',
+      stComBia: (p) => 'con ' + p, stComVoce: 'contigo', stEncerrada: 'cerrada', stSnoozed: 'pospuesta', notaInterna: 'nota interna',
+      porServico: 'Por servicio', avaliacoes: 'solicitudes de reseña enviadas', porRamo: 'Por ramo', faltando: 'Falta', cutucada: 'recordatorio enviado',
+      sistemaOk: 'Ningún fallo registrado en las automatizaciones en las últimas 24 horas.', sistemaFalhas: (n) => n === 1 ? '1 fallo registrado en las automatizaciones en las últimas 24 horas.' : n + ' fallos registrados en las automatizaciones en las últimas 24 horas.',
+      ultimaFalha: 'último fallo', fonte: 'fuente de los datos', fonteTxt: 'bandeja de entrada, agenda y automatizaciones — leídos en vivo en cada actualización',
+      erroCarregar: 'No pude actualizar ahora. Mostrando los últimos datos.', erroAuth: 'Este enlace no es válido. Pide uno nuevo a Uneven.', carregando: 'Cargando',
+      semLink: 'Tu acceso está al final del enlace que Uneven te envió. Pegá el enlace acá abajo — después de eso este dispositivo lo recuerda.', semLinkCurto: 'falta el enlace de acceso',
+      colarPh: 'pegá acá el enlace que Uneven te envió', colarTit: 'Acceso', entrar: 'Entrar', colarErro: 'Esa dirección no trae el acceso. Copiá de nuevo el enlace entero del mensaje de Uneven.',
+      entrarTit: 'Entrar al panel', entrarTxt: 'Poné tu e-mail. Te mandamos un código de 6 dígitos.',
+      campoEmail: 'E-mail', enviarCodigo: 'Enviar código', enviando: 'Enviando…',
+      codigoTit: 'Código enviado', codigoTxt1: 'Mandamos un código de 6 dígitos a', codigoTxt2: 'Si esa dirección tiene acceso, el código llega en un momento y vale 10 minutos.',
+      rodapePorta: 'Acceso por código. Ninguna contraseña que recordar.',
+      campoCodigo: 'Código', conferindo: 'Verificando…', reenviar: 'Enviar otro código', trocarEmail: 'Usar otro e-mail',
+      temLink: 'Tengo un enlace de acceso', conta: 'Cuenta', sair: 'Salir', qualPainel: 'Qué panel',
+      eEmailInvalido: 'Ese e-mail no parece correcto.', eCodigoInvalido: 'Código incorrecto.', eRestam: (n) => ' Quedan ' + n + '.',
+      eCodigoExpirado: 'Ese código venció. Pedí otro.', eTentativas: 'Demasiados intentos. Pedí un código nuevo.',
+      eSemAcesso: 'Este e-mail todavía no tiene panel.', eRede: 'No pude hablar con el servidor. Probá de nuevo.',
+      dicaIcone: 'Para dejar el ícono en el celular: abrí primero el enlace completo y recién ahí usá "Agregar a inicio".',
+      hoje: 'hoy', amanha: 'mañana', semDados: 'sin datos', nota: 'Números leídos directamente del sistema. Lo que no se midió no se muestra.',
+      seg: 's', naoLidas: (n) => n + ' sin leer', de: { cliente: 'cliente', nos: '' }
+    }
+  };
+  // Textos novos (20/set). Ficam fora dos blocos acima de propósito: assim dá para revisar
+  // o que entrou sem reler três traduções inteiras.
+  const T2 = {
+    pt: {
+      agoraTit: 'Agora', esperandoHa: (n, m) => n + ' está esperando você há ' + m,
+      minutos: (m) => m + ' min', horas: (h) => h + ' h', menosDeUmMin: 'menos de 1 min',
+      proximoHoje: 'Próximo hoje', cancelouHoje: (n) => n === 1 ? '1 horário cancelado' : n + ' horários cancelados',
+      cotacaoParada: (n) => n === 1 ? '1 cotação pronta parada há mais de 3 dias' : n + ' cotações prontas paradas há mais de 3 dias',
+      verAgenda: 'Ver agenda', verCotacoes: 'Ver cotações',
+      heroiMarcados: 'horários marcados pela Bia', heroiMarcadosP: (p) => 'horários marcados pela ' + p,
+      heroiCotacoes: 'cotações prontas para o corretor',
+      foraExpediente: (n) => n === 1 ? '1 deles fora do seu expediente' : n + ' deles fora do seu expediente',
+      foraExpedienteConv: 'conversas fora do expediente', noPeriodoLabel: 'atendidos no período',
+      precisaramDeVoce: 'precisaram de você', ocupacao: 'agenda cheia', ocupacaoSub: (o, a) => o + ' h de ' + a + ' h abertas',
+      desfecho: 'No que deu cada conversa', dMarcou: 'marcou horário', dPrecisou: 'precisou de você', dResolvida: 'só tirou dúvida', dAberto: 'ainda em aberto',
+      // O sistema só conhece quem falou com a recepção. Chamar de "cliente novo" afirmaria
+      // que a pessoa nunca pisou no salão — isso ninguém mediu.
+      novosLabel: 'falaram pela 1ª vez', recorrentesLabel: 'já tinham falado', porCanal: 'Por canal',
+      semana: 'A sua semana', semanaSub: 'o que a Bia encheu aparece marcado', semanaSubP: (p) => 'o que a ' + p + ' encheu aparece marcado',
+      peloBot: (p) => 'pela ' + p, porVoce: 'por você', nadaSemana: 'Nenhum horário nos próximos 7 dias.',
+      agendaLivre: 'Agenda livre pelos próximos 7 dias.',
+      canal: 'Canal', cancelados: 'cancelados', lembretes: 'lembretes enviados',
+      avaliacoesTit: 'Avaliações no Google', notaGoogle: 'nota no Google', semPerfil: 'Perfil do Google ainda não conectado. Quando conectar, a nota e as avaliações novas aparecem aqui.',
+      agendaIndisponivel: (m) => 'Agenda indisponível: ' + m + '.',
+      avaliacoesParcial: 'O Google devolve só as 5 mais recentes por aqui.',
+      medianaFrase: (t, n) => 'metade das pessoas recebeu resposta em menos de ' + t + ' (' + n + (n === 1 ? ' conversa' : ' conversas') + ')',
+      mediaTb: (t) => 'média: ' + t,
+      semMediana: 'ainda sem conversa respondida no período',
+      vsDatas: (de, ate) => 'vs. ' + de + ' a ' + ate,
+      lembreteSemResposta: (n) => n === 1 ? '1 lembrete de amanhã ainda sem resposta' : n + ' lembretes de amanhã ainda sem resposta',
+      confirmados: 'confirmaram a véspera', lembretesTit: 'Confirmação da véspera',
+      tempoCorretor: 'o corretor leva', tempoCorretorSub: (n) => 'mediana de ' + n + (n === 1 ? ' cotação marcada' : ' cotações marcadas'),
+      mvFonteNaoRespondeu: 'A fonte não respondeu agora. Tente daqui a pouco.',
+      mvSemPlaceId: 'Perfil do Google ainda não conectado. Quando conectar, a nota e as avaliações aparecem aqui.',
+      mvAindaNaoLido: 'Perfil conectado. A primeira leitura sai na próxima madrugada.',
+      lidoEm: (q) => 'lido ' + q,
+      tudoCerto: 'Está tudo funcionando.', tudoCertoSub: 'Nenhuma falha nas automações nas últimas 24 horas.',
+      houveFalha: (n) => n === 1 ? 'Houve 1 problema nas últimas 24 horas.' : 'Houve ' + n + ' problemas nas últimas 24 horas.',
+      houveFalhaSub: 'A Uneven é avisada automaticamente quando isso acontece.',
+      ajustes: 'Ajustes', emailSemanal: 'Resumo semanal por e-mail',
+      emailSemanalTxt: 'Toda semana, um resumo do que a recepção fez: horários marcados, quem precisou de você e o que vem pela frente.',
+      receber: 'Quero receber', naoReceber: 'Não quero', paraQuem: 'Enviar para', diaSemana: 'Dia', hora: 'Hora',
+      salvar: 'Salvar', salvo: 'Salvo', salvando: 'Salvando…', erroSalvar: 'Não consegui salvar. Tente de novo.',
+      dias7: ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'],
+      emailPh: 'e-mail de quem recebe', idadeCotacao: 'Há quanto tempo estão paradas',
+      ate24h: 'até 24 h', de1a3d: '1 a 3 dias', mais3d: 'mais de 3 dias',
+      fechou: 'Fechou', perdi: 'Perdi', resultadoTit: 'Resultado', conversao: 'fecharam',
+      motivoPerda: 'Por que não fechou?', mPreco: 'preço', mDemorou: 'demorei a responder', mOutro: 'foi com outro', mDesistiu: 'desistiu',
+      camposFaltam: 'O que mais falta nas cotações', jaRespondido: 'registrado',
+    },
+    en: {
+      agoraTit: 'Now', esperandoHa: (n, m) => n + ' has been waiting for you for ' + m,
+      minutos: (m) => m + ' min', horas: (h) => h + ' h', menosDeUmMin: 'less than 1 min',
+      proximoHoje: 'Next today', cancelouHoje: (n) => n === 1 ? '1 appointment cancelled' : n + ' appointments cancelled',
+      cotacaoParada: (n) => n === 1 ? '1 quote ready and idle for over 3 days' : n + ' quotes ready and idle for over 3 days',
+      verAgenda: 'See schedule', verCotacoes: 'See quotes',
+      heroiMarcados: 'appointments booked by Bia', heroiMarcadosP: (p) => 'appointments booked by ' + p,
+      heroiCotacoes: 'quotes ready for the broker',
+      foraExpediente: (n) => n === 1 ? '1 of them outside your hours' : n + ' of them outside your hours',
+      foraExpedienteConv: 'conversations outside hours', noPeriodoLabel: 'served in period',
+      precisaramDeVoce: 'needed you', ocupacao: 'schedule filled', ocupacaoSub: (o, a) => o + ' h of ' + a + ' h open',
+      desfecho: 'What each conversation led to', dMarcou: 'booked', dPrecisou: 'needed you', dResolvida: 'just a question', dAberto: 'still open',
+      novosLabel: 'first time talking', recorrentesLabel: 'had talked before', porCanal: 'By channel',
+      semana: 'Your week', semanaSub: 'what Bia filled is marked', semanaSubP: (p) => 'what ' + p + ' filled is marked',
+      peloBot: (p) => 'by ' + p, porVoce: 'by you', nadaSemana: 'No appointments in the next 7 days.',
+      agendaLivre: 'Schedule is open for the next 7 days.',
+      canal: 'Channel', cancelados: 'cancelled', lembretes: 'reminders sent',
+      avaliacoesTit: 'Google reviews', notaGoogle: 'Google rating', semPerfil: 'Google profile not connected yet. Once connected, your rating and new reviews show here.',
+      agendaIndisponivel: (m) => 'Schedule unavailable: ' + m + '.',
+      avaliacoesParcial: 'Google only returns the 5 most recent here.',
+      medianaFrase: (t, n) => 'half of your customers got an answer in under ' + t + ' (' + n + (n === 1 ? ' conversation' : ' conversations') + ')',
+      mediaTb: (t) => 'average: ' + t,
+      semMediana: 'no answered conversation in this period yet',
+      vsDatas: (de, ate) => 'vs. ' + de + ' to ' + ate,
+      lembreteSemResposta: (n) => n === 1 ? "1 reminder for tomorrow still unanswered" : n + ' reminders for tomorrow still unanswered',
+      confirmados: 'confirmed the reminder', lembretesTit: 'Next-day confirmation',
+      tempoCorretor: 'the broker takes', tempoCorretorSub: (n) => 'median of ' + n + (n === 1 ? ' marked quote' : ' marked quotes'),
+      mvFonteNaoRespondeu: 'The source did not answer just now. Try again shortly.',
+      mvSemPlaceId: 'Google profile not connected yet. Once it is, the rating and reviews show up here.',
+      mvAindaNaoLido: 'Profile connected. First reading comes overnight.',
+      lidoEm: (q) => 'read ' + q,
+      tudoCerto: 'Everything is working.', tudoCertoSub: 'No failures in the automations in the last 24 hours.',
+      houveFalha: (n) => n === 1 ? 'There was 1 problem in the last 24 hours.' : 'There were ' + n + ' problems in the last 24 hours.',
+      houveFalhaSub: 'Uneven is notified automatically when this happens.',
+      ajustes: 'Settings', emailSemanal: 'Weekly email summary',
+      emailSemanalTxt: 'Every week, a summary of what the front desk did: appointments booked, who needed you, and what is coming up.',
+      receber: 'Send it to me', naoReceber: 'No thanks', paraQuem: 'Send to', diaSemana: 'Day', hora: 'Time',
+      salvar: 'Save', salvo: 'Saved', salvando: 'Saving…', erroSalvar: "Couldn't save. Try again.",
+      dias7: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      emailPh: 'email of who receives it', idadeCotacao: 'How long they have been idle',
+      ate24h: 'under 24 h', de1a3d: '1 to 3 days', mais3d: 'over 3 days',
+      fechou: 'Won', perdi: 'Lost', resultadoTit: 'Outcome', conversao: 'closed',
+      motivoPerda: 'Why not?', mPreco: 'price', mDemorou: 'I was slow', mOutro: 'went elsewhere', mDesistiu: 'gave up',
+      camposFaltam: 'What is missing most in quotes', jaRespondido: 'recorded',
+    },
+    es: {
+      agoraTit: 'Ahora', esperandoHa: (n, m) => n + ' te está esperando hace ' + m,
+      minutos: (m) => m + ' min', horas: (h) => h + ' h', menosDeUmMin: 'menos de 1 min',
+      proximoHoje: 'Próxima hoy', cancelouHoje: (n) => n === 1 ? '1 cita cancelada' : n + ' citas canceladas',
+      cotacaoParada: (n) => n === 1 ? '1 cotización lista parada hace más de 3 días' : n + ' cotizaciones listas paradas hace más de 3 días',
+      verAgenda: 'Ver agenda', verCotacoes: 'Ver cotizaciones',
+      heroiMarcados: 'citas agendadas por Bia', heroiMarcadosP: (p) => 'citas agendadas por ' + p,
+      heroiCotacoes: 'cotizaciones listas para el corredor',
+      foraExpediente: (n) => n === 1 ? '1 de ellas fuera de tu horario' : n + ' de ellas fuera de tu horario',
+      foraExpedienteConv: 'conversaciones fuera del horario', noPeriodoLabel: 'atendidos en el período',
+      precisaramDeVoce: 'te necesitaron', ocupacao: 'agenda llena', ocupacaoSub: (o, a) => o + ' h de ' + a + ' h abiertas',
+      desfecho: 'En qué terminó cada conversación', dMarcou: 'agendó', dPrecisou: 'te necesitó', dResolvida: 'solo una duda', dAberto: 'todavía abierta',
+      novosLabel: 'hablaron por 1ª vez', recorrentesLabel: 'ya habían hablado', porCanal: 'Por canal',
+      semana: 'Tu semana', semanaSub: 'lo que llenó Bia aparece marcado', semanaSubP: (p) => 'lo que llenó ' + p + ' aparece marcado',
+      peloBot: (p) => 'por ' + p, porVoce: 'por vos', nadaSemana: 'Sin citas en los próximos 7 días.',
+      agendaLivre: 'Agenda libre por los próximos 7 días.',
+      canal: 'Canal', cancelados: 'canceladas', lembretes: 'recordatorios enviados',
+      avaliacoesTit: 'Reseñas en Google', notaGoogle: 'nota en Google', semPerfil: 'Perfil de Google aún no conectado. Cuando lo conectes, la nota y las reseñas nuevas aparecen acá.',
+      agendaIndisponivel: (m) => 'Agenda no disponible: ' + m + '.',
+      avaliacoesParcial: 'Google solo devuelve las 5 más recientes por aquí.',
+      medianaFrase: (t, n) => 'la mitad de las personas recibió respuesta en menos de ' + t + ' (' + n + (n === 1 ? ' conversación' : ' conversaciones') + ')',
+      mediaTb: (t) => 'promedio: ' + t,
+      semMediana: 'aún sin conversación respondida en el período',
+      vsDatas: (de, ate) => 'vs. ' + de + ' a ' + ate,
+      lembreteSemResposta: (n) => n === 1 ? '1 recordatorio de mañana aún sin respuesta' : n + ' recordatorios de mañana aún sin respuesta',
+      confirmados: 'confirmaron la víspera', lembretesTit: 'Confirmación de la víspera',
+      tempoCorretor: 'el corredor tarda', tempoCorretorSub: (n) => 'mediana de ' + n + (n === 1 ? ' cotización marcada' : ' cotizaciones marcadas'),
+      mvFonteNaoRespondeu: 'La fuente no respondió ahora. Inténtalo en un rato.',
+      mvSemPlaceId: 'Perfil de Google aún no conectado. Cuando se conecte, la nota y las reseñas aparecen aquí.',
+      mvAindaNaoLido: 'Perfil conectado. La primera lectura sale de madrugada.',
+      lidoEm: (q) => 'leído ' + q,
+      tudoCerto: 'Todo está funcionando.', tudoCertoSub: 'Ningún fallo en las automatizaciones en las últimas 24 horas.',
+      houveFalha: (n) => n === 1 ? 'Hubo 1 problema en las últimas 24 horas.' : 'Hubo ' + n + ' problemas en las últimas 24 horas.',
+      houveFalhaSub: 'Uneven es avisada automáticamente cuando esto pasa.',
+      ajustes: 'Ajustes', emailSemanal: 'Resumen semanal por e-mail',
+      emailSemanalTxt: 'Cada semana, un resumen de lo que hizo la recepción: citas agendadas, quién te necesitó y lo que viene.',
+      receber: 'Quiero recibirlo', naoReceber: 'No quiero', paraQuem: 'Enviar a', diaSemana: 'Día', hora: 'Hora',
+      salvar: 'Guardar', salvo: 'Guardado', salvando: 'Guardando…', erroSalvar: 'No pude guardar. Probá de nuevo.',
+      dias7: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+      emailPh: 'e-mail de quien lo recibe', idadeCotacao: 'Hace cuánto están paradas',
+      ate24h: 'hasta 24 h', de1a3d: '1 a 3 días', mais3d: 'más de 3 días',
+      fechou: 'Cerró', perdi: 'Perdí', resultadoTit: 'Resultado', conversao: 'cerraron',
+      motivoPerda: '¿Por qué no cerró?', mPreco: 'precio', mDemorou: 'tardé en responder', mOutro: 'fue con otro', mDesistiu: 'desistió',
+      camposFaltam: 'Lo que más falta en las cotizaciones', jaRespondido: 'registrado',
+    }
+  };
+  for (const idioma of Object.keys(T2)) Object.assign(T[idioma], T2[idioma]);
+
+  const t = (k, ...a) => { const v = (T[state.lang] || T.pt)[k]; return typeof v === 'function' ? v(...a) : (v == null ? k : v); };
+
+  // O backend manda código ('sem_place_id'), não frase. Assim a mesma causa aparece nos três
+  // idiomas sem o n8n saber português — e um código novo não vira texto cru na tela do cliente.
+  const MOTIVOS = { sem_place_id: 'mvSemPlaceId', fonte_nao_respondeu: 'mvFonteNaoRespondeu', ainda_nao_lido: 'mvAindaNaoLido' };
+  const motivoTexto = (cod) => {
+    if (!cod) return t('semDados');
+    const chave = MOTIVOS[String(cod)];
+    return chave ? t(chave) : t('semDados');
+  };
+
+  // Por que a cotação não fechou. Lista fechada: montar a chave por concatenação
+  // ('m' + código) põe o código cru na tela assim que alguém gravar um motivo novo.
+  const MOTIVOS_PERDA = ['preco', 'demorou', 'outro', 'desistiu'];
+  const ROTULO_PERDA = { preco: 'mPreco', demorou: 'mDemorou', outro: 'mOutro', desistiu: 'mDesistiu' };
+  const motivoPerdaTexto = (cod) => {
+    const chave = ROTULO_PERDA[String(cod || '').toLowerCase()];
+    return chave ? t(chave) : '';
+  };
+  const LOCALE = { pt: 'pt-BR', en: 'en-US', es: 'es-US' };
+
+  /* ---------- util ---------- */
+  const $ = (s, r) => (r || document).querySelector(s);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmtN = (n) => n == null ? '—' : new Intl.NumberFormat(LOCALE[state.lang] || 'pt-BR').format(n);
+  const tz = () => (state.data && state.data.fuso) || 'America/New_York';
+  const toDate = (iso) => { if (!iso) return null; const d = new Date(iso); return isNaN(d.getTime()) ? null : d; };
+  const fmt = (iso, opts) => { const d = toDate(iso); if (!d) return ''; try { return new Intl.DateTimeFormat(LOCALE[state.lang], Object.assign({ timeZone: tz() }, opts)).format(d); } catch (e) { return ''; } };
+  const fmtTime = (iso) => fmt(iso, { hour: '2-digit', minute: '2-digit' });
+  const fmtDay = (iso) => fmt(iso, { weekday: 'long', day: 'numeric', month: 'long' });
+  const fmtShort = (iso) => fmt(iso, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const dayKey = (iso) => { const d = toDate(iso); if (!d) return ''; try { return new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: tz() }).format(d); } catch (e) { return ''; } };
+  const relDay = (iso) => { const k = dayKey(iso), today = dayKey(new Date().toISOString()); const tom = dayKey(new Date(Date.now() + 864e5).toISOString()); return k && k === today ? t('hoje') : (k && k === tom ? t('amanha') : ''); };
+  const fmtClock = (d) => { try { return new Intl.DateTimeFormat(LOCALE[state.lang], { hour: '2-digit', minute: '2-digit' }).format(d); } catch (e) { return ''; } };
+  const fmtSeg = (s) => s == null ? '—' : (s < 60 ? Math.round(s * 10) / 10 + ' ' + t('seg') : (s < 3600 ? Math.round(s / 60) + ' min' : Math.round(s / 360) / 10 + ' h'));
+  const initials = (n) => String(n || '').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '#';
+  const fmtDia = (iso) => fmt(iso, { day: '2-digit', month: 'short' });
+  // "vs. 7 a 13 de set" diz mais que "vs. período anterior" — e deixa o número conferível.
+  const rotuloAnterior = () => {
+    const p = state.data && state.data.periodo;
+    if (!p || !p.prev_ini || !p.prev_fim) return t('vsAnterior');
+    return t('vsDatas', fmtDia(p.prev_ini), fmtDia(p.prev_fim));
+  };
+
+  const delta = (cur, prev, goodUp) => {
+    if (cur == null) return '<span class="un-kpi__delta">' + esc(t('semDados')) + '</span>';
+    if (prev == null || prev === 0) return '<span class="un-kpi__delta">' + esc(t('semBase')) + '</span>';
+    const p = Math.round(((cur - prev) / prev) * 100);
+    const dir = goodUp == null ? '' : (p > 0 ? 'up' : (p < 0 ? 'down' : ''));
+    return '<span class="un-kpi__delta" data-dir="' + dir + '" data-good="' + (goodUp === false ? 'false' : 'true') + '">' + (p > 0 ? '+' : '') + p + '% · ' + esc(rotuloAnterior()) + '</span>';
+  };
+  const kpi = (label, value, sub, foot) => '<div class="un-card un-kpi"><p class="un-label">' + esc(label) + '</p><div class="un-kpi__value">' + value + '</div>' + (sub || '') + (foot ? '<p class="un-kpi__foot">' + foot + '</p>' : '') + '</div>';
+  const statusPill = (c) => {
+    const p = (state.data && state.data.cliente.persona) || 'Bia';
+    if (c.status === 'resolved') return '<span class="un-pill">' + esc(t('stEncerrada')) + '</span>';
+    if (c.status === 'snoozed') return '<span class="un-pill">' + esc(t('stSnoozed')) + '</span>';
+    if (c.status === 'open' && c.humano) return '<span class="un-pill ' + (c.aguardando ? 'un-pill--warn' : 'un-pill--solid') + '">' + esc(t('stComVoce')) + '</span>';
+    return '<span class="un-pill un-pill--ok"><span class="un-dot un-dot--ok"></span>' + esc(t('stComBia', p)) + '</span>';
+  };
+
+  /* ---------- navegação ---------- */
+  const ICONS = {
+    visao: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
+    conversas: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>',
+    agenda: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+    cotacoes: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+    saude: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>',
+    ajustes: '<svg class="p-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
+  };
+  function views() {
+    const tipo = state.data ? state.data.cliente.tipo : 'agenda';
+    return [
+      { id: 'visao', num: '01' },
+      { id: 'conversas', num: '02' },
+      tipo === 'seguros' ? { id: 'cotacoes', num: '03' } : { id: 'agenda', num: '03' },
+      { id: 'saude', num: '04' },
+      { id: 'ajustes', num: '05' }
+    ];
+  }
+  function currentView() { const h = (location.hash || '#/visao').replace('#/', ''); const ok = views().map(v => v.id); return ok.includes(h) ? h : 'visao'; }
+  function renderNav() {
+    const cur = currentView();
+    $('#nav').innerHTML = views().map(v => '<a href="#/' + v.id + '"' + (v.id === cur ? ' aria-current="page"' : '') + '><span class="un-label">' + v.num + '</span>' + ICONS[v.id] + esc(t(v.id)) + '</a>').join('');
+    $('#tabbar').innerHTML = views().map(v => '<a href="#/' + v.id + '"' + (v.id === cur ? ' aria-current="page"' : '') + '>' + ICONS[v.id] + esc(t(v.id)) + '</a>').join('');
+    $('#t-title').textContent = t(cur);
+  }
+
+  /* ---------- controles ---------- */
+  const segRefresh = () => [2, 5, 15].map(m => '<button type="button" data-ref="' + m + '" aria-pressed="' + (state.refreshMin === m) + '">' + m + ' ' + esc(t('min')) + '</button>').join('');
+  const stripMd = (s) => String(s || '').replace(/\*\*|__|`/g, '').replace(/\s+/g, ' ').trim();
+  function renderSegs() {
+    $('#seg-dias').innerHTML = [7, 14, 30].map(d => '<button type="button" data-dias="' + d + '" aria-pressed="' + (state.dias === d) + '"><span class="p-seg-long">' + esc(t('dias', d)) + '</span><span class="p-seg-short">' + d + 'd</span></button>').join('');
+    $('#seg-refresh').innerHTML = segRefresh();
+    const sc = $('#seg-cliente');
+    const lista = (SESSAO && SESSAO.clientes) || [];
+    if (sc) {
+      sc.hidden = lista.length < 2;
+      sc.innerHTML = lista.length < 2 ? '' : lista.map(c => {
+        const nome = (state.data && state.data.cliente && state.data.cliente.id === c.cliente_id && state.data.cliente.nome) || c.nome || c.cliente_id;
+        return '<button type="button" data-cliente="' + esc(c.cliente_id) + '" aria-pressed="' + (CLIENTE === c.cliente_id) + '">' + esc(nome) + '</button>';
+      }).join('');
+    }
+    $('#s-refresh-label').textContent = t('atualiza');
+    $('#btn-refresh-txt').textContent = t('atualizar');
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-dias]'); if (b) { state.dias = Number(b.dataset.dias); renderSegs(); load(); return; }
+    const r = e.target.closest('button[data-ref]'); if (r) { state.refreshMin = Number(r.dataset.ref); renderSegs(); schedule(); renderView(); return; }
+    if (e.target.closest('#btn-refresh')) { load(); return; }
+    const tc = e.target.closest('button[data-cliente]'); if (tc) { trocarCliente(tc.dataset.cliente); return; }
+    if (e.target.closest('#btn-sair')) { sair(); return; }
+    const cp = e.target.closest('[data-copy]'); if (cp) { if (!navigator.clipboard) return; navigator.clipboard.writeText(cp.getAttribute('data-copy')).then(() => { const o = cp.textContent; cp.textContent = t('copiado'); setTimeout(() => cp.textContent = o, 1500); }).catch(() => {}); return; }
+    const ea = e.target.closest('button[data-es-ativo]');
+    if (ea) {
+      const cfg = (state.data && state.data.cliente && state.data.cliente.email_semanal) || {};
+      const novo = { ativo: ea.dataset.esAtivo === '1', dia: Number(cfg.dia != null ? cfg.dia : 1), hora: Number(cfg.hora != null ? cfg.hora : 8), para: Array.isArray(cfg.para) ? cfg.para : [] };
+      if (state.data && state.data.cliente) state.data.cliente.email_semanal = novo;
+      renderView();
+      if (!novo.ativo) salvarAjustes(novo);
+      return;
+    }
+    if (e.target.closest('#es-salvar')) {
+      const para = String((($('#es-para') || {}).value) || '').split(/[,;\s]+/).map(s => s.trim()).filter(s => /@/.test(s));
+      salvarAjustes({ ativo: true, dia: Number(($('#es-dia') || {}).value || 1), hora: Number(($('#es-hora') || {}).value || 8), para });
+      return;
+    }
+    const rq = e.target.closest('button[data-resultado]');
+    if (rq) { marcarResultado(rq.dataset.id, rq.dataset.resultado, rq.dataset.motivo || ''); return; }
+    const row = e.target.closest('tr[data-href]'); if (row && !e.target.closest('a')) { window.open(row.dataset.href, '_blank', 'noopener'); }
+  });
+  document.addEventListener('change', (e) => {
+    const sp = e.target.closest('select[data-perdi]');
+    if (sp && sp.value) { marcarResultado(sp.dataset.perdi, 'perdi', sp.value); }
+  });
+  window.addEventListener('hashchange', () => { renderNav(); renderView(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && state.proxima && Date.now() >= state.proxima) load(); });
+
+  /* ---------- dados ---------- */
+  async function load() {
+    if (state.loading) return; state.loading = true; setStatus();
+    const t0 = Date.now();
+    try {
+      const url = API + '?cliente=' + encodeURIComponent(CLIENTE) + '&token=' + encodeURIComponent(TOKEN) + '&dias=' + state.dias + '&_=' + t0;
+      // A sessão vai no cabeçalho, não na URL: não entra em log de servidor nem em histórico.
+      const cab = (SESSAO && SESSAO.token) ? { 'x-painel-sessao': SESSAO.token } : {};
+      const r = await fetch(url, { cache: 'no-store', credentials: 'include', headers: cab });
+      if (r.status === 401) {
+        state.loading = false; clearTimeout(state.timer); clearInterval(state.tick); state.proxima = null;
+        if (SESSAO) { SESSAO = null; gravarSessao(null); CLIENTE = ''; state.data = null; state.erro = 'semLink'; }
+        else state.erro = 'auth';
+        renderAll();
+        if (state.erro === 'semLink') tentarCookie();
+        return;
+      }
+      const j = await r.json();
+      if (!j || !j.ok) throw new Error('resposta inválida');
+      state.data = j; state.erro = null; state.atualizadoEm = new Date(); state.latencia = Date.now() - t0;
+      // guarda o nome bonito de cada painel para o seletor não mostrar o id cru
+      if (SESSAO && j.cliente && j.cliente.id) {
+        const alvo = (SESSAO.clientes || []).find(c => c.cliente_id === j.cliente.id);
+        if (alvo && alvo.nome !== j.cliente.nome) { alvo.nome = j.cliente.nome; gravarSessao(SESSAO); }
+      }
+      if (!Q.get('lang') && j.cliente && j.cliente.idioma && T[j.cliente.idioma]) { state.lang = j.cliente.idioma; document.documentElement.lang = state.lang; }
+    } catch (e) { state.erro = state.data ? 'refresh' : 'load'; }
+    state.loading = false;
+    try { renderAll(); } catch (e) { console.error(e); } finally { schedule(); }
+    // o período mudou enquanto carregava? busca de novo
+    if (state.data && state.data.periodo && state.data.periodo.dias !== state.dias) load();
+  }
+  function schedule() {
+    clearTimeout(state.timer); clearInterval(state.tick);
+    state.proxima = Date.now() + state.refreshMin * 60000;
+    state.timer = setTimeout(load, state.refreshMin * 60000);
+    state.tick = setInterval(setStatus, 1000); setStatus();
+  }
+  function setStatus() {
+    const dot = $('#s-dot'), st = $('#s-status'), cd = $('#t-countdown');
+    if (state.loading) { dot.className = 'un-dot'; st.textContent = t('carregando') + '…'; }
+    else if (state.erro === 'semLink') { dot.className = 'un-dot'; st.textContent = t('semLinkCurto'); }
+    else if (state.erro === 'auth') { dot.className = 'un-dot un-dot--bad'; st.textContent = t('erroAuth'); }
+    else if (state.erro) { dot.className = 'un-dot un-dot--warn'; st.textContent = t('erroCarregar'); }
+    else if (state.atualizadoEm) { dot.className = 'un-dot un-dot--ok un-dot--live'; st.textContent = t('atualizado') + ' ' + fmtClock(state.atualizadoEm); }
+    if (state.proxima && !state.loading) { const s = Math.max(0, Math.round((state.proxima - Date.now()) / 1000)); cd.textContent = t('em') + ' ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); } else cd.textContent = '';
+  }
+
+  /* ---------- entrar ---------- */
+  // Login por código de 6 dígitos no e-mail. Sem senha: nada para guardar,
+  // nada para esquecer, nada de "esqueci minha senha".
+  const login = { etapa: 'email', email: '', erro: '', ocupado: false, mostrarLink: false };
+
+  async function chamarAuth(corpo) {
+    const r = await fetch(AUTH, {
+      method: 'POST', cache: 'no-store', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(corpo)
+    });
+    return r.json();
+  }
+  function textoErro(j) {
+    const m = {
+      email_invalido: t('eEmailInvalido'), codigo_expirado: t('eCodigoExpirado'),
+      tentativas_demais: t('eTentativas'), sem_acesso: t('eSemAcesso')
+    };
+    if (j && j.erro === 'codigo_invalido') {
+      return t('eCodigoInvalido') + (typeof j.restam === 'number' && j.restam > 0 ? t('eRestam', j.restam) : '');
+    }
+    return (j && m[j.erro]) || t('eRede');
+  }
+
+  function telaLogin() {
+    const naEtapaEmail = login.etapa === 'email';
+    const t1 = naEtapaEmail ? t('entrarTit') : t('codigoTit');
+    const palavras = t1.split(' ');
+    const ultima = palavras.length > 1 ? palavras.pop() : '';
+    const titulo = esc(palavras.join(' ')) + (ultima ? ' <span class="un-dim">' + esc(ultima) + '</span>' : '');
+
+    let h = '<div class="p-porta__caixa">';
+    h += '<p class="p-porta__marca">Uneven Media</p><hr class="p-porta__regua">';
+    h += '<h1 class="p-porta__titulo">' + titulo + '</h1>';
+    h += '<p class="p-porta__texto">' + (naEtapaEmail ? esc(t('entrarTxt'))
+      : esc(t('codigoTxt1')) + ' <strong>' + esc(login.email) + '</strong>. ' + esc(t('codigoTxt2'))) + '</p>';
+
+    if (naEtapaEmail) {
+      h += '<input id="lg-email" class="p-campo" type="email" inputmode="email" autocomplete="email"'
+        + ' autocapitalize="off" spellcheck="false" placeholder="' + esc(t('campoEmail')) + '" value="' + esc(login.email) + '">';
+      h += '<button id="lg-ok" class="un-btn p-porta__btn" type="button"' + (login.ocupado ? ' disabled' : '') + '>'
+        + esc(login.ocupado ? t('enviando') : t('enviarCodigo')) + '</button>';
+    } else {
+      h += '<div class="p-otp" id="lg-otp">';
+      for (let k = 0; k < 6; k++) {
+        h += '<input type="text" inputmode="numeric" maxlength="1" data-i="' + k + '"'
+          + (k === 0 ? ' autocomplete="one-time-code"' : '') + ' aria-label="' + esc(t('campoCodigo')) + ' ' + (k + 1) + '">';
+      }
+      h += '</div>';
+      h += '<button id="lg-ok" class="un-btn p-porta__btn" type="button"' + (login.ocupado ? ' disabled' : '') + '>'
+        + esc(login.ocupado ? t('conferindo') : t('entrar')) + '</button>';
+    }
+
+    h += '<p class="p-porta__erro">' + esc(login.erro || '') + '</p>';
+
+    h += '<div class="p-porta__acoes">';
+    if (!naEtapaEmail) {
+      h += '<button id="lg-reenviar" class="p-porta__link" type="button">' + esc(t('reenviar')) + '</button>'
+        + '<button id="lg-voltar" class="p-porta__link" type="button">' + esc(t('trocarEmail')) + '</button>';
+    } else if (!login.mostrarLink) {
+      h += '<button id="lg-tem-link" class="p-porta__link" type="button">' + esc(t('temLink')) + '</button>';
+    }
+    h += '</div>';
+
+    if (login.mostrarLink && naEtapaEmail) {
+      h += '<div style="margin-top:var(--un-s5)">'
+        + '<input id="lk" class="p-campo" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="' + esc(t('colarPh')) + '">'
+        + '<button id="lk-ok" class="un-btn un-btn--ghost p-porta__btn" type="button">' + esc(t('entrar')) + '</button>'
+        + '<p id="lk-erro" class="p-porta__erro"></p></div>';
+    }
+
+    h += '<p class="p-porta__rodape">' + esc(t('rodapePorta')) + '</p>';
+    h += '</div>';
+    return h;
+  }
+
+  function ligarLogin() {
+    const redesenhar = (foco) => { $('#porta').innerHTML = telaLogin(); ligarLogin(); if (foco) { const el = $(foco); if (el) el.focus(); } };
+
+    const pedir = async (email) => {
+      login.email = String(email || '').trim().toLowerCase();
+      login.erro = ''; login.ocupado = true; redesenhar();
+      try {
+        const j = await chamarAuth({ acao: 'pedir-codigo', email: login.email });
+        login.ocupado = false;
+        if (j && j.ok) { login.etapa = 'codigo'; login.erro = ''; } else login.erro = textoErro(j);
+      } catch (e) { login.ocupado = false; login.erro = t('eRede'); }
+      redesenhar(login.etapa === 'codigo' ? '#lg-otp input[data-i="0"]' : '#lg-email');
+    };
+
+    const entrar = async (codigo) => {
+      login.erro = ''; login.ocupado = true; redesenhar();
+      let j = null;
+      try { j = await chamarAuth({ acao: 'entrar', email: login.email, codigo: codigo, aparelho: navigator.userAgent.slice(0, 110) }); }
+      catch (e) { j = null; }
+      login.ocupado = false;
+      if (j && j.ok && j.sessao) { aplicarSessao(j); return; }
+      login.erro = textoErro(j);
+      if (j && (j.erro === 'codigo_expirado' || j.erro === 'tentativas_demais')) login.etapa = 'email';
+      redesenhar(login.etapa === 'codigo' ? '#lg-otp input[data-i="0"]' : '#lg-email');
+    };
+
+    const caixas = () => [...document.querySelectorAll('#lg-otp input')];
+    const juntar = () => caixas().map(c => c.value).join('');
+
+    const be = $('#lg-ok');
+    if (be) be.addEventListener('click', () => {
+      if (login.etapa === 'email') pedir(($('#lg-email') || {}).value);
+      else entrar(juntar().replace(/\D/g, ''));
+    });
+
+    const em = $('#lg-email');
+    if (em) em.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') be && be.click(); });
+
+    // Seis caixas: digitou anda sozinho, apagou volta, colar preenche tudo,
+    // e no sexto dígito já tenta entrar — ninguém precisa procurar o botão.
+    caixas().forEach((c, i, todas) => {
+      c.addEventListener('input', () => {
+        c.value = (c.value || '').replace(/\D/g, '').slice(-1);
+        c.dataset.cheio = c.value ? 'sim' : 'nao';
+        if (c.value && i < todas.length - 1) todas[i + 1].focus();
+        const tudo = juntar();
+        if (tudo.length === 6 && !login.ocupado) entrar(tudo);
+      });
+      c.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Backspace' && !c.value && i > 0) { todas[i - 1].focus(); todas[i - 1].value = ''; todas[i - 1].dataset.cheio = 'nao'; ev.preventDefault(); }
+        if (ev.key === 'ArrowLeft' && i > 0) todas[i - 1].focus();
+        if (ev.key === 'ArrowRight' && i < todas.length - 1) todas[i + 1].focus();
+        if (ev.key === 'Enter') be && be.click();
+      });
+      c.addEventListener('paste', (ev) => {
+        const texto = ((ev.clipboardData || window.clipboardData).getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        if (!texto) return;
+        ev.preventDefault();
+        todas.forEach((x, k) => { x.value = texto[k] || ''; x.dataset.cheio = x.value ? 'sim' : 'nao'; });
+        todas[Math.min(texto.length, 5)].focus();
+        if (texto.length === 6 && !login.ocupado) entrar(texto);
+      });
+    });
+
+    const br = $('#lg-reenviar'); if (br) br.addEventListener('click', () => pedir(login.email));
+    const bv = $('#lg-voltar'); if (bv) bv.addEventListener('click', () => { login.etapa = 'email'; login.erro = ''; redesenhar('#lg-email'); });
+    const bl = $('#lg-tem-link'); if (bl) bl.addEventListener('click', () => { login.mostrarLink = true; redesenhar('#lk'); });
+
+    const inp = $('#lk'), ok = $('#lk-ok'), err = $('#lk-erro');
+    if (inp && ok) {
+      const tentar = () => { if (!entrarComLink(inp.value)) { err.textContent = t('colarErro'); inp.focus(); } };
+      ok.addEventListener('click', tentar);
+      inp.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') tentar(); });
+    }
+  }
+
+  function aplicarSessao(j) {
+    const lista = (j.clientes || []).map(c => (typeof c === 'string' ? { cliente_id: c, papel: 'dono' } : c));
+    const token = j.sessao || (SESSAO && SESSAO.token) || '';
+    SESSAO = { token: token, viaCookie: !token, expira_em: j.expira_em, email: j.email, nome: j.nome, clientes: lista, escolhido: (lista[0] || {}).cliente_id || '' };
+    gravarSessao(SESSAO);
+    CLIENTE = SESSAO.escolhido; TOKEN = '';
+    login.etapa = 'email'; login.erro = ''; login.ocupado = false; login.mostrarLink = false;
+    state.erro = null; renderAll(); load();
+  }
+
+  function entrarComLink(txt) {
+    const raw = String(txt || '').trim();
+    const mc = raw.match(/[?#&]cliente=([^&\s#]+)/i), mt = raw.match(/[?#&]token=([^&\s#]+)/i);
+    if (!mc || !mt) return false;
+    let c, k;
+    try { c = decodeURIComponent(mc[1]); k = decodeURIComponent(mt[1]); } catch (e) { c = mc[1]; k = mt[1]; }
+    if (!c || !k) return false;
+    CLIENTE = c; TOKEN = k;
+    try { localStorage.setItem('un-painel', JSON.stringify({ cliente: c, token: k })); } catch (e) {}
+    try { history.replaceState(null, '', location.pathname + '?cliente=' + encodeURIComponent(c) + '&token=' + encodeURIComponent(k) + '#/visao'); } catch (e) {}
+    state.erro = null; renderAll(); load(); return true;
+  }
+
+  function sair() {
+    const token = (SESSAO && SESSAO.token) || '';
+    SESSAO = null; gravarSessao(null);
+    try { localStorage.removeItem('un-painel'); } catch (e) {}
+    CLIENTE = ''; TOKEN = '';
+    state.data = null; state.erro = 'semLink';
+    clearTimeout(state.timer); clearInterval(state.tick); state.proxima = null;
+    login.etapa = 'email'; login.erro = ''; login.ocupado = false; login.mostrarLink = false;
+    try { history.replaceState(null, '', location.pathname + '#/visao'); } catch (e) {}
+    renderAll();
+    // Sempre avisa o servidor: apaga a linha da sessão e limpa o cookie.
+    chamarAuth({ acao: 'sair', sessao: token }).catch(() => {});
+  }
+
+  // Pergunta ao servidor se o cookie ainda vale. Uma vez por carregamento.
+  let cookieTestado = false;
+  function tentarCookie() {
+    if (cookieTestado) return;
+    cookieTestado = true;
+    chamarAuth({ acao: 'verificar' }).then((j) => {
+      if (j && j.ok && (j.clientes || []).length && state.erro === 'semLink') aplicarSessao(j);
+    }).catch(() => {});
+  }
+
+  function trocarCliente(id) {
+    if (!SESSAO || CLIENTE === id) return;
+    SESSAO.escolhido = id; gravarSessao(SESSAO);
+    CLIENTE = id; state.data = null; state.erro = null;
+    renderAll(); load();
+  }
+
+  /* ---------- render ---------- */
+  function renderAll() {
+    const fora = state.erro === 'semLink';
+    document.body.classList.toggle('p-deslogado', fora);
+    const porta = $('#porta');
+    porta.hidden = !fora;
+    if (fora) {
+      document.title = t('entrarTit') + ' — Uneven Media';
+      porta.innerHTML = telaLogin();
+      ligarLogin();
+      const primeiro = $('#lg-otp input[data-i="0"]') || $('#lg-email');
+      if (primeiro && !login.ocupado) primeiro.focus();
+      return;
+    }
+    renderSegs(); renderNav();
+    const d = state.data;
+    if (d) {
+      $('#s-persona').textContent = d.cliente.persona + ' · ' + (d.cliente.tipo === 'seguros' ? t('cotacoes') : t('agenda'));
+      $('#s-nome').textContent = d.cliente.nome;
+      $('#s-sub').textContent = [d.cliente.cidade, d.cliente.tipo_negocio].filter(Boolean).join(' · ');
+      $('#t-persona').textContent = d.cliente.nome;
+    }
+    renderView(); setStatus();
+  }
+  function renderView() {
+    const v = $('#view'), d = state.data;
+    if (state.erro === 'auth') { v.innerHTML = '<div class="un-banner un-banner--bad">' + esc(t('erroAuth')) + '</div>'; return; }
+    if (!d) { v.innerHTML = (state.erro ? '<div class="un-section"><div class="un-banner un-banner--bad">' + esc(t('erroCarregar')) + '</div></div>' : '') + skeleton(); return; }
+    const cur = currentView();
+    const F = d.fontes || {};
+    const fontesFalhas = Object.keys(F).filter(k => F[k] === false);
+    let html = state.erro ? '<div class="un-section"><div class="un-banner">' + esc(t('erroCarregar')) + '</div></div>' : '';
+    if (fontesFalhas.length) html += '<div class="un-section"><div class="un-banner">' + esc(t('fonteFalhou')) + '</div></div>';
+    // Regra de honestidade (UNEVEN-CONTEXTO §5): cliente de demonstração aparece rotulado
+    if (/-demo$/.test(d.cliente.id) || d.cliente.id === 'bella-miami' || /\(demo\)/i.test(d.cliente.nome)) html += '<p class="un-label" style="margin-bottom:var(--un-s4)">EXAMPLE · FICTIONAL BUSINESS AND NAMES · REAL LAYOUT</p>';
+    html += ({ visao: viewVisao, conversas: viewConversas, agenda: viewAgenda, cotacoes: viewCotacoes, saude: viewSaude, ajustes: viewAjustes })[cur](d);
+    html += '<p class="p-note">' + esc(t('nota')) + '</p>';
+    v.innerHTML = html;
+  }
+  function skeleton() {
+    return '<div class="un-section un-grid un-grid--4">' + [1, 2, 3, 4].map(() => '<div class="un-card un-kpi"><p class="un-label un-skel">xxxxxxxx</p><div class="un-kpi__value un-skel">000</div></div>').join('') + '</div><div class="un-card" style="height:220px"></div>';
+  }
+
+  // O bloco "Agora" só existe quando há o que fazer. Vazio não vira card vazio.
+  function blocoAgora(d) {
+    const itens = d.agora || [];
+    if (!itens.length) return '';
+    const dur = (m) => m == null ? '' : (m < 1 ? t('menosDeUmMin') : (m < 60 ? t('minutos', m) : t('horas', Math.floor(m / 60))));
+    const linha = (urg, txt, botao) => '<div class="p-agora__lin" data-urg="' + urg + '"><span class="p-agora__marca"></span>'
+      + '<span class="p-agora__txt">' + txt + '</span>' + (botao || '') + '</div>';
+    const btn = (href, rot) => '<a class="un-btn un-btn--sm" href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(rot) + '</a>';
+    const btnHash = (hash, rot) => '<a class="un-btn un-btn--ghost un-btn--sm" href="' + hash + '">' + esc(rot) + '</a>';
+    let h = '<div class="p-agora"><p class="p-agora__tit">' + esc(t('agoraTit')) + '</p>';
+    for (const i of itens) {
+      if (i.tipo === 'esperando') {
+        const urg = i.minutos == null ? 'baixa' : (i.minutos >= 60 ? 'alta' : (i.minutos >= 15 ? 'media' : 'baixa'));
+        h += linha(urg, esc(t('esperandoHa', i.nome, dur(i.minutos))), btn(i.link, t('abrirConversa')));
+      } else if (i.tipo === 'proximo') {
+        h += linha('baixa', '<strong>' + esc(fmtTime(i.quando)) + '</strong> — ' + esc(i.servico || '') + (i.nome ? ' · ' + esc(i.nome) : ''), btnHash('#/agenda', t('verAgenda')));
+      } else if (i.tipo === 'cancelamento') {
+        h += linha('media', esc(t('cancelouHoje', i.n)), btnHash('#/agenda', t('verAgenda')));
+      } else if (i.tipo === 'lembrete') {
+        h += linha('media', esc(t('lembreteSemResposta', i.n)), btnHash('#/agenda', t('verAgenda')));
+      } else if (i.tipo === 'cotacao_parada') {
+        h += linha('alta', esc(t('cotacaoParada', i.n)), btnHash('#/cotacoes', t('verCotacoes')));
+      }
+    }
+    return h + '</div>';
+  }
+
+  function viewVisao(d) {
+    const k = d.kpis, seg = d.cliente.tipo === 'seguros', p = d.cliente.persona || 'Bia';
+    const a = d.agenda || {};
+    let h = blocoAgora(d);
+
+    // HERÓI: um número responde "valeu a pena?". O resto é apoio.
+    if (seg) {
+      const pr = (d.cotacoes && d.cotacoes.prontas.length) || 0;
+      h += '<div class="p-heroi"><span class="p-heroi__n">' + fmtN(pr) + '</span><span class="p-heroi__rot">' + esc(t('heroiCotacoes')) + '</span></div>';
+      const emC = (d.cotacoes && d.cotacoes.em_coleta.length) || 0;
+      h += '<p class="p-heroi__sub">' + fmtN(emC) + ' ' + esc(t('emColeta')) + '</p>';
+    } else if (a.disponivel) {
+      h += '<div class="p-heroi"><span class="p-heroi__n">' + fmtN(a.marcados_pela_bia) + '</span><span class="p-heroi__rot">' + esc(t('heroiMarcadosP', p)) + '</span></div>';
+      h += '<p class="p-heroi__sub">' + (a.marcados_fora_expediente ? esc(t('foraExpediente', a.marcados_fora_expediente)) : '&nbsp;') + '</p>';
+    } else {
+      h += '<div class="p-heroi"><span class="p-heroi__n">' + esc(t('semDados')) + '</span></div>';
+      h += '<p class="p-heroi__sub">' + esc(a.motivo ? motivoTexto(a.motivo) : t('semDados')) + '</p>';
+    }
+
+    // Apoio. Volume de mensagens não é bom nem ruim: delta neutro (null).
+    h += '<div class="un-section un-grid un-grid--4">';
+    h += kpi(t('conversasPeriodo'), fmtN(k.conversas), delta(k.conversas, k.conversas_prev, true));
+    h += kpi(t('transbordos'), fmtN(k.transbordos), delta(k.transbordos, k.transbordos_prev, false));
+    // 28/set: so a mediana medida por nos (1a mensagem do cliente -> 1a resposta, bot ou pessoa).
+    // O avg_first_response_time do Chatwoot conta so resposta HUMANA (dava "media: 25 h" com a Bia respondendo em segundos).
+    h += kpi(t('primeira'), fmtSeg(k.primeira_resposta_mediana), '');
+    if (seg) h += kpi(t('comCorretor'), fmtN(d.cotacoes ? d.cotacoes.com_corretor : null), '');
+    else h += kpi(t('noPeriodoLabel'), fmtN(a.disponivel ? a.no_periodo : null), '<span class="un-kpi__delta">' + fmtN(a.disponivel ? a.proximos_7d : null) + ' · ' + esc(t('prox7')) + '</span>');
+    h += '</div>';
+
+    h += '<div class="un-section un-grid un-grid--4">';
+    if (k.fora_expediente != null) h += kpi(t('foraExpedienteConv'), fmtN(k.fora_expediente), '');
+    if (d.novos) h += kpi(t('novosLabel'), fmtN(d.novos.novos), '<span class="un-kpi__delta">' + fmtN(d.novos.recorrentes) + ' ' + esc(t('recorrentesLabel')) + '</span>');
+    if (!seg && a.disponivel && a.ocupacao && a.ocupacao.pct != null) h += kpi(t('ocupacao'), a.ocupacao.pct + '<small>%</small>', '<span class="un-kpi__delta">' + esc(t('ocupacaoSub', a.ocupacao.horas_ocupadas, a.ocupacao.horas_abertas)) + '</span>');
+    if (!seg && a.disponivel) h += kpi(t('avaliacoes'), fmtN(a.avaliacoes_pedidas), '');
+    if (seg && d.cotacoes && d.cotacoes.tempo_do_corretor && d.cotacoes.tempo_do_corretor.mediana_h != null) {
+      h += kpi(t('tempoCorretor'), d.cotacoes.tempo_do_corretor.mediana_h + '<small> h</small>',
+        '<span class="un-kpi__delta">' + esc(t('tempoCorretorSub', d.cotacoes.tempo_do_corretor.n)) + '</span>');
+    }
+    if (seg && d.cotacoes && d.cotacoes.resultado.conversao != null) h += kpi(t('conversao'), d.cotacoes.resultado.conversao + '<small>%</small>', '<span class="un-kpi__delta">' + d.cotacoes.resultado.fechou + ' / ' + (d.cotacoes.resultado.fechou + d.cotacoes.resultado.perdi) + '</span>');
+    h += kpi(t('respondidas'), fmtN(k.respondidas), delta(k.respondidas, k.respondidas_prev, null));
+    h += '</div>';
+
+    // Desfecho: no que deu cada conversa. Definição no `Montar` da API, não aqui.
+    if (!seg && a.desfecho) {
+      const D = a.desfecho, tot = Math.max(1, D.marcou + D.precisou_de_voce + D.resolvida + D.em_aberto);
+      const linhas = [['dMarcou', D.marcou], ['dPrecisou', D.precisou_de_voce], ['dResolvida', D.resolvida], ['dAberto', D.em_aberto]];
+      h += '<div class="un-section"><div class="un-card"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('desfecho')) + '</p>';
+      h += linhas.map(([ch, n]) => '<div class="un-bar-h" style="--v:' + (n / tot).toFixed(3) + '"><span>' + esc(t(ch)) + '</span><i></i><b>' + n + '</b></div>').join('');
+      h += '</div></div>';
+    }
+    // gráfico + lateral
+    const serie = d.serie || [];
+    const max = Math.max(1, ...serie.map(s => s.v || 0));
+    const todayK = dayKey(new Date().toISOString());
+    const labelDia = (dia) => { try { return new Intl.DateTimeFormat(LOCALE[state.lang], serie.length > 14 ? { day: '2-digit', month: '2-digit', timeZone: 'UTC' } : { day: '2-digit', timeZone: 'UTC' }).format(new Date(dia + 'T12:00:00Z')); } catch (e) { return dia.slice(-2); } };
+    h += '<div class="un-section un-grid un-grid--main">';
+    h += '<div class="un-card"><div class="un-section__head"><p class="un-label">' + esc(t('porDia')) + '</p><span class="un-mono">' + esc(t('dias', d.periodo.dias)) + '</span></div>';
+    if (d.fontes && d.fontes.serie === false) h += '<p class="un-empty">' + esc(t('semDados')) + '</p>';
+    else {
+      h += '<div class="un-bars">' + serie.map(s => '<div style="--v:' + ((s.v || 0) / max).toFixed(3) + '"' + (s.dia === todayK ? ' data-today' : '') + '><i></i><b>' + (s.v || 0) + '</b></div>').join('') + '</div>';
+      h += '<div class="un-bars-x">' + serie.map((s, i) => '<span>' + ((serie.length <= 14 || i % 3 === 0) ? esc(labelDia(s.dia)) : '') + '</span>').join('') + '</div>';
+    }
+    h += '</div>';
+    h += '<div class="un-card">';
+    if (seg) {
+      const pr = (d.cotacoes && d.cotacoes.prontas) || [];
+      h += '<div class="un-section__head"><p class="un-label">' + esc(t('prontasCotar')) + '</p><a class="un-mono" href="#/cotacoes">' + esc(t('abrir')) + ' →</a></div>';
+      h += pr.length ? '<ul class="un-list">' + pr.slice(0, 6).map(c => '<li class="un-item"><span class="un-avatar">' + esc(initials(c.nome)) + '</span><div><div class="un-item__title">' + esc(c.nome) + '</div><div class="un-item__sub">' + esc(c.ramo) + ' · ' + esc(fmtShort(c.atualizado)) + '</div></div><a class="un-btn un-btn--ghost un-btn--sm" href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(t('abrir')) + '</a></li>').join('') + '</ul>' : '<p class="un-empty">' + esc(t('nadaProntas')) + '</p>';
+    } else {
+      const px = (d.agenda && d.agenda.proximos) || [];
+      h += '<div class="un-section__head"><p class="un-label">' + esc(t('proxHorarios')) + '</p><a class="un-mono" href="#/agenda">' + esc(t('abrir')) + ' →</a></div>';
+      h += px.length ? '<ul class="un-list">' + px.slice(0, 6).map(e => '<li class="un-item"><span class="p-time">' + esc(fmtTime(e.quando)) + '</span><div><div class="un-item__title">' + esc(e.servico) + (e.nome ? ' — ' + esc(e.nome) : '') + '</div><div class="un-item__sub">' + esc(relDay(e.quando) || fmtDay(e.quando)) + '</div></div><span></span></li>').join('') + '</ul>' : '<p class="un-empty">' + esc(t('nadaProx')) + '</p>';
+    }
+    h += '</div></div>';
+    // Por canal: só aparece quando há mais de um. Com um canal só, é ruído.
+    if (d.canais && d.canais.length > 1) {
+      const mxc = Math.max(1, ...d.canais.map(c => c.n));
+      h += '<div class="un-section"><div class="un-card"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('porCanal')) + '</p>'
+        + d.canais.map(c => '<div class="un-bar-h" style="--v:' + (c.n / mxc).toFixed(3) + '"><span>' + esc(c.nome) + '</span><i></i><b>' + c.n + '</b></div>').join('')
+        + '</div></div>';
+    }
+    return h;
+  }
+
+  // Grade da semana: o dono vê a agenda inteira e o que a recepção encheu.
+  function gradeSemana(d) {
+    const a = d.agenda || {};
+    const evs = (a.semana || []).slice();
+    const p = d.cliente.persona || 'Bia';
+    const hoje = dayKey(new Date().toISOString());
+    const dias = [];
+    for (let i = 0; i < 8; i++) {
+      const base = new Date(Date.now() + i * 864e5).toISOString();
+      dias.push({ k: dayKey(base), iso: base });
+    }
+    const porDia = {};
+    for (const e of evs) { const k = dayKey(e.inicio); (porDia[k] = porDia[k] || []).push(e); }
+    let h = '<div class="p-semana">';
+    for (const dia of dias) {
+      const lista = (porDia[dia.k] || []).sort((x, y) => String(x.inicio).localeCompare(String(y.inicio)));
+      h += '<div class="p-semana__dia"' + (dia.k === hoje ? ' data-hoje' : '') + '>';
+      h += '<div class="p-semana__cab">' + esc(fmt(dia.iso, { weekday: 'short', day: 'numeric' })) + '</div>';
+      h += lista.length ? lista.map(e => '<a class="p-ev"' + (e.origem === 'bia' ? ' data-bia' : '') + ' href="' + esc(e.link || '#') + '" target="_blank" rel="noopener">'
+        + '<span class="p-ev__h">' + esc(fmtTime(e.inicio)) + '</span>'
+        + '<span class="p-ev__s">' + esc(e.servico || '') + '</span></a>').join('')
+        : '<span class="p-semana__vazio">—</span>';
+      h += '</div>';
+    }
+    h += '</div>';
+    h += '<div class="p-legenda"><span><i data-bia></i>' + esc(t('peloBot', p)) + '</span><span><i></i>' + esc(t('porVoce')) + '</span></div>';
+    return h;
+  }
+
+  function viewConversas(d) {
+    const cs = d.conversas || [];
+    if (d.fontes && d.fontes.conversas === false) return '<div class="un-card"><p class="un-empty">' + esc(t('semDados')) + '</p></div>';
+    if (!cs.length) return '<div class="un-card"><p class="un-empty">' + esc(t('nadaConversas')) + '</p></div>';
+    // A coluna de canal só aparece quando o cliente tem mais de um (WhatsApp, Instagram…).
+    const multi = ((d.cliente && d.cliente.canais) || []).length > 1;
+    // Número em prosa: "metade das pessoas recebeu resposta em menos de 9 s". A contagem
+    // entre parênteses deixa claro de quantas conversas ele saiu — sem isso vira slogan.
+    const kk = d.kpis || {};
+    const fraseMediana = kk.primeira_resposta_mediana != null
+      ? '<p class="un-mono" style="margin-bottom:var(--un-s4)">' + esc(t('medianaFrase', fmtSeg(kk.primeira_resposta_mediana), kk.primeira_resposta_n || 0)) + '</p>'
+      : '<p class="un-mono" style="margin-bottom:var(--un-s4)">' + esc(t('semMediana')) + '</p>';
+    let h = fraseMediana + '<p class="un-mono" style="margin-bottom:var(--un-s3)">' + esc(t('maisRecentes', cs.length)) + '</p><div class="un-card"><table class="un-table"><thead><tr><th>' + esc(t('cliente')) + '</th>' + (multi ? '<th class="p-hide-m">' + esc(t('canal')) + '</th>' : '') + '<th>' + esc(t('status')) + '</th><th class="p-hide-m">' + esc(t('ultima')) + '</th><th class="un-num p-hide-m">' + esc(t('quando')) + '</th><th class="p-hide-m"></th></tr></thead><tbody>';
+    h += cs.map(c => '<tr data-href="' + esc(c.link) + '"><td><div class="un-item__title">' + esc(c.nome) + '</div><div class="un-item__sub">' + esc(c.telefone) + (multi ? ' · ' + esc(c.canal_nome || '') : '') + (c.nao_lidas ? ' · ' + esc(t('naoLidas', c.nao_lidas)) : '') + '<span class="p-hide-d"> · ' + esc(fmtShort(c.quando)) + '</span></div><div class="un-item__text p-hide-d">' + esc(stripMd(c.ultima)) + '</div></td>' + (multi ? '<td class="p-hide-m"><span class="un-pill">' + esc(c.canal_nome || '') + '</span></td>' : '') + '<td>' + statusPill(c) + '</td><td class="p-hide-m"><div class="un-item__text">' + esc(stripMd(c.ultima)) + '</div></td><td class="un-num p-hide-m">' + esc(fmtShort(c.quando)) + '</td><td class="un-num p-hide-m"><a class="un-btn un-btn--ghost un-btn--sm" href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(t('abrir')) + '</a></td></tr>').join('');
+    return h + '</tbody></table></div>';
+  }
+
+  function viewAgenda(d) {
+    const a = d.agenda || {};
+    const p = d.cliente.persona || 'Bia';
+    if (!a.disponivel) {
+      return '<div class="un-card"><p class="un-empty">' + esc(a.motivo ? motivoTexto(a.motivo) : t('semDados')) + '</p></div>';
+    }
+    const px = a.proximos || [], porServ = a.por_servico || [];
+
+    let h = '<div class="un-section"><div class="un-card">';
+    h += '<div class="un-section__head"><p class="un-label">' + esc(t('semana')) + '</p><span class="un-mono">' + esc(t('semanaSubP', p)) + '</span></div>';
+    h += (a.semana && a.semana.length) ? gradeSemana(d) : '<p class="un-empty">' + esc(t('agendaLivre')) + '</p>';
+    h += '</div></div>';
+
+    h += '<div class="un-grid un-grid--main">';
+    h += '<div class="un-card"><p class="un-label" style="margin-bottom:var(--un-s4)">' + esc(t('proxHorarios')) + '</p>';
+    if (!px.length) h += '<p class="un-empty">' + esc(t('agendaLivre')) + '</p>';
+    else {
+      const groups = {}; px.forEach(e => { const k = dayKey(e.quando); (groups[k] = groups[k] || []).push(e); });
+      h += Object.keys(groups).sort().map(k => { const es = groups[k]; const rd = relDay(es[0].quando); return '<div class="p-day"><p class="un-label">' + esc(fmtDay(es[0].quando)) + (rd ? ' · ' + esc(rd) : '') + '</p><ul class="un-list">' + es.map(e => '<li class="un-item"><span class="p-time">' + esc(fmtTime(e.quando)) + '</span><div><div class="un-item__title">' + esc(e.servico) + '</div><div class="un-item__sub">' + esc(e.nome || '') + (e.origem === 'bia' ? ' · ' + esc(t('peloBot', p)) : '') + '</div></div><span></span></li>').join('') + '</ul></div>'; }).join('');
+    }
+    h += '</div><div>';
+    h += '<div class="un-grid un-grid--2" style="margin-bottom:var(--un-s4)">';
+    h += kpi(t('cancelados'), fmtN(a.cancelados), '');
+    // Lembrete enviado sem resposta não afirma que a pessoa não vem — afirma que ela ainda
+// não respondeu. É a diferença entre o que medimos e o que gostaríamos de saber.
+    h += kpi(t('lembretes'), fmtN(a.lembretes && a.lembretes.enviados != null ? a.lembretes.enviados : a.lembretes_enviados),
+      (a.lembretes && a.lembretes.enviados > 0)
+        ? '<span class="un-kpi__delta">' + fmtN(a.lembretes.confirmados) + ' ' + esc(t('confirmados')) + '</span>'
+        : '');
+    h += '</div>';
+    h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('porServico')) + '</p>';
+    const mx = Math.max(1, ...porServ.map(s => s.n));
+    h += porServ.length ? porServ.map(s => '<div class="un-bar-h" style="--v:' + (s.n / mx).toFixed(3) + '"><span>' + esc(s.nome) + '</span><i></i><b>' + s.n + '</b></div>').join('') : '<p class="un-empty">' + esc(t('nada')) + '</p>';
+    h += '</div>';
+    h += blocoAvaliacoes(d);
+    return h + '</div></div>';
+  }
+
+  // Avaliações do Google. Sem perfil conectado, diz isso — não mostra zero.
+  function blocoAvaliacoes(d) {
+    const av = d.avaliacoes || {};
+    let h = '<div class="un-card"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('avaliacoesTit')) + '</p>';
+    if (!av.disponivel) return h + '<p class="un-empty">' + esc(motivoTexto(av.motivo)) + '</p></div>';
+    h += '<div class="p-hero" style="margin-bottom:var(--un-s3)"><span class="un-kpi__value">' + (av.nota != null ? esc(String(av.nota)) : '—') + '</span>'
+      + '<span class="un-mono">' + fmtN(av.total) + ' · ' + esc(t('avaliacoesTit')) + '</span></div>';
+    // O Google só devolve as 5 mais recentes por esta via, e não diz quais o dono respondeu.
+    // Por isso aqui não existe "N sem resposta sua": é número que ninguém mediu.
+    // A nota vem da leitura diária guardada, não de uma consulta agora. Dizer quando foi lida
+    // é o que separa mostrar um dado de afirmar que ele é do minuto.
+    if (av.lido_em) h += '<p class="un-mono">' + esc(t('lidoEm', fmtShort(av.lido_em))) + '</p>';
+    if (av.parcial) h += '<p class="un-mono">' + esc(t('avaliacoesParcial')) + '</p>';
+    h += (av.recentes || []).slice(0, 3).map(r => '<div class="un-item" style="padding:8px 0"><div><div class="un-item__sub">' + esc(r.autor) + ' · ' + esc(String(r.nota || '')) + '★</div><div class="un-item__text">' + esc(r.texto) + '</div></div></div>').join('');
+    return h + '</div>';
+  }
+
+  function viewCotacoes(d) {
+    const c = d.cotacoes || { prontas: [], em_coleta: [], por_ramo: [] };
+    const card = (q, pronta) => {
+      const val = (v) => (v && typeof v === 'object') ? JSON.stringify(v) : v;
+      const dados = (q.dados && typeof q.dados === 'object') ? q.dados : {};
+      const linhas = Object.entries(dados).map(([k, v]) => '<tr><td>' + esc(k.replace(/_/g, ' ')) + '</td><td>' + esc(val(v)) + '</td></tr>').join('');
+      const texto = Object.entries(dados).map(([k, v]) => k + ': ' + val(v)).join('\n');
+      if (!Array.isArray(q.faltando)) q.faltando = [];
+      return '<div class="un-card" style="margin-bottom:var(--un-s4)"><div class="p-card-head"><div>' + (pronta ? '<span class="un-pill un-pill--solid">' + esc(t('prontaUma')) + '</span>' : '<span class="un-pill">' + esc(t('emColeta')) + '</span>') + ' <span class="un-h3" style="font-size:16px;margin-left:6px">' + esc(q.ramo || '—') + '</span></div><span class="un-mono">' + esc(q.nome) + ' · ' + esc(q.telefone) + ' · ' + esc(q.idioma) + ' · ' + esc(fmtShort(q.atualizado)) + '</span></div>'
+        + '<table class="p-kv">' + (linhas || '<tr><td colspan="2">—</td></tr>') + '</table>'
+        + (q.faltando && q.faltando.length ? '<p class="un-mono" style="margin-top:var(--un-s3);color:var(--un-warn)">' + esc(t('faltando')) + ': ' + esc(q.faltando.join(', ')) + (q.followups ? ' · ' + esc(t('cutucada')) : '') + '</p>' : '')
+        + '<div class="p-card-foot"><a class="un-btn un-btn--sm" href="' + esc(q.link) + '" target="_blank" rel="noopener">' + esc(t('abrirConversa')) + '</a><button type="button" class="un-btn un-btn--ghost un-btn--sm" data-copy="' + esc(texto) + '">' + esc(t('copiar')) + '</button>'
+        // Fechou ou perdeu: é o único número que a corretora realmente quer, e só o corretor sabe.
+        + (pronta ? (q.resultado
+          ? '<span class="un-pill' + (q.resultado === 'fechou' ? ' un-pill--ok' : '') + '">' + esc(q.resultado === 'fechou' ? t('fechou') : t('perdi')) + (q.motivo_perda ? ' · ' + esc(motivoPerdaTexto(q.motivo_perda)) : '') + '</span>'
+          : '<button type="button" class="un-btn un-btn--ghost un-btn--sm" data-resultado="fechou" data-id="' + esc(q.id) + '">' + esc(t('fechou')) + '</button>'
+            + '<select class="p-sel un-btn--sm" style="width:auto;height:32px" data-perdi="' + esc(q.id) + '">'
+            + '<option value="">' + esc(t('perdi')) + '…</option>'
+            + MOTIVOS_PERDA.map(m => '<option value="' + m + '">' + esc(motivoPerdaTexto(m)) + '</option>').join('')
+            + '</select>') : '')
+        + '</div></div>';
+    };
+    let h = '<div class="un-grid un-grid--main"><div>';
+    // Envelhecimento: cotação pronta parada é dinheiro esfriando.
+    const env = c.envelhecimento || {};
+    if ((env.ate_24h + env.de_1_a_3d + env.mais_3d) > 0) {
+      h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('idadeCotacao')) + '</p>';
+      const mxe = Math.max(1, env.ate_24h, env.de_1_a_3d, env.mais_3d);
+      h += [['ate24h', env.ate_24h], ['de1a3d', env.de_1_a_3d], ['mais3d', env.mais_3d]]
+        .map(([ch, n]) => '<div class="un-bar-h" style="--v:' + (n / mxe).toFixed(3) + '"><span>' + esc(t(ch)) + '</span><i></i><b>' + n + '</b></div>').join('');
+      h += '</div>';
+    }
+    h += '<p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('prontasCotar')) + ' · ' + c.prontas.length + '</p>';
+    h += c.prontas.length ? c.prontas.map(q => card(q, true)).join('') : '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-empty">' + esc(t('nadaProntas')) + '</p></div>';
+    if (c.em_coleta.length) { h += '<p class="un-label" style="margin:var(--un-s6) 0 var(--un-s3)">' + esc(t('emColeta')) + ' · ' + c.em_coleta.length + '</p>' + c.em_coleta.map(q => card(q, false)).join(''); }
+    h += '</div><div>';
+    const mx = Math.max(1, ...c.por_ramo.map(s => s.n));
+    h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('porRamo')) + '</p>' + (c.por_ramo.length ? c.por_ramo.map(s => '<div class="un-bar-h" style="--v:' + (s.n / mx).toFixed(3) + '"><span>' + esc(s.nome) + '</span><i></i><b>' + s.n + '</b></div>').join('') : '<p class="un-empty">' + esc(t('nada')) + '</p>') + '</div>';
+    // Onde a Lia trava: os campos que mais ficam faltando.
+    const cf = c.campos_que_faltam || [];
+    if (cf.length) {
+      const mxf = Math.max(1, ...cf.map(s => s.n));
+      h += '<div class="un-card" style="margin-bottom:var(--un-s4)"><p class="un-label" style="margin-bottom:var(--un-s3)">' + esc(t('camposFaltam')) + '</p>'
+        + cf.map(s => '<div class="un-bar-h" style="--v:' + (s.n / mxf).toFixed(3) + '"><span>' + esc(String(s.nome).replace(/_/g, ' ')) + '</span><i></i><b>' + s.n + '</b></div>').join('') + '</div>';
+    }
+    h += kpi(t('comCorretor'), fmtN(c.com_corretor), '');
+    return h + '</div></div>';
+  }
+
+  async function marcarResultado(id, resultado, motivo) {
+    try {
+      await fetch(API.replace('painel-dados', 'painel-ajustes'), {
+        method: 'POST', cache: 'no-store', credentials: 'include',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, (SESSAO && SESSAO.token) ? { 'x-painel-sessao': SESSAO.token } : {}),
+        body: JSON.stringify({ cliente: CLIENTE, token: TOKEN, cotacao: { conversa_id: Number(id), resultado, motivo } })
+      });
+    } catch (e) {}
+    load();
+  }
+
+  function viewSaude(d) {
+    const s = d.saude || {}; const semFonte = !!(d.fontes && d.fontes.execucoes === false); const ok = !semFonte && !s.falhas_24h;
+    // Linguagem de dona de salão, não de plantão de TI. "747 ms" não diz nada para ela.
+    let h = '<div class="un-card" style="margin-bottom:var(--un-s4)"><div class="p-hero"><span class="un-dot ' + (semFonte ? '' : (ok ? 'un-dot--ok un-dot--live' : 'un-dot--warn')) + '"></span><div>'
+      + '<h2 class="un-h2">' + esc(semFonte ? t('sistemaSemDados') : (ok ? t('tudoCerto') : t('houveFalha', s.falhas_24h))) + '</h2>'
+      + (semFonte ? '' : '<p class="un-mono" style="margin-top:6px">' + esc(ok ? t('tudoCertoSub') : t('houveFalhaSub')) + (!ok && s.ultima_falha ? ' · ' + esc(t('ultimaFalha')) + ' ' + esc(fmtShort(s.ultima_falha)) : '') + '</p>')
+      + '</div></div></div>';
+    h += '<div class="un-grid un-grid--2">';
+    h += kpi(t('atualizado'), state.atualizadoEm ? esc(fmtClock(state.atualizadoEm)) : '—', '<span class="un-kpi__delta">' + esc(t('atualiza')) + '</span>', '<span class="un-seg" role="group">' + segRefresh() + '</span>');
+    h += kpi(t('fonte'), '<span style="font:var(--un-body-md);color:var(--un-body)">' + esc(t('fonteTxt')) + '</span>', '');
+    h += '</div>';
+    if (SESSAO) {
+      h += '<div class="un-card" style="margin-top:var(--un-s4)"><p class="un-label">' + esc(t('conta')) + '</p>'
+        + '<p class="un-body" style="margin-top:var(--un-s2)">' + esc(SESSAO.email || '') + '</p>'
+        + '<p style="margin-top:var(--un-s3)"><button id="btn-sair" class="un-btn un-btn--ghost un-btn--sm" type="button">' + esc(t('sair')) + '</button></p></div>';
+    }
+    if (!STANDALONE && location.protocol !== 'file:') h += '<div class="un-card" style="margin-top:var(--un-s4)"><p class="un-label">' + esc(t('instalar')) + '</p><p class="un-body" style="margin-top:var(--un-s2)">' + esc(t('instalarTxt')) + '</p></div>';
+    return h;
+  }
+
+  // Ajustes: o que o cliente controla sozinho. Hoje, o resumo semanal.
+  const ajustes = { salvando: false, msg: '' };
+  function viewAjustes(d) {
+    const cfg = (d.cliente && d.cliente.email_semanal) || {};
+    const ativo = cfg.ativo === true;
+    const para = Array.isArray(cfg.para) ? cfg.para : [];
+    const dia = Number(cfg.dia != null ? cfg.dia : 1);
+    const hora = Number(cfg.hora != null ? cfg.hora : 8);
+    const nomes = t('dias7');
+    let h = '<div class="un-card"><p class="un-label">' + esc(t('emailSemanal')) + '</p>';
+    h += '<p class="un-body" style="margin-top:var(--un-s2);margin-bottom:var(--un-s5)">' + esc(t('emailSemanalTxt')) + '</p>';
+    h += '<div class="un-seg" role="group" style="margin-bottom:var(--un-s5)">'
+      + '<button type="button" data-es-ativo="1" aria-pressed="' + ativo + '">' + esc(t('receber')) + '</button>'
+      + '<button type="button" data-es-ativo="0" aria-pressed="' + (!ativo) + '">' + esc(t('naoReceber')) + '</button></div>';
+    if (ativo) {
+      h += '<div class="p-form">';
+      h += '<div><label for="es-para">' + esc(t('paraQuem')) + '</label>'
+        + '<input id="es-para" class="p-campo" type="text" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="' + esc(t('emailPh')) + '" value="' + esc(para.join(', ')) + '"></div>';
+      h += '<div class="p-linha2">';
+      h += '<div><label for="es-dia">' + esc(t('diaSemana')) + '</label><select id="es-dia" class="p-sel">'
+        + nomes.map((n, i) => '<option value="' + i + '"' + (i === dia ? ' selected' : '') + '>' + esc(n) + '</option>').join('') + '</select></div>';
+      h += '<div><label for="es-hora">' + esc(t('hora')) + '</label><select id="es-hora" class="p-sel">'
+        + Array.from({ length: 24 }, (_, i) => '<option value="' + i + '"' + (i === hora ? ' selected' : '') + '>' + String(i).padStart(2, '0') + ':00</option>').join('') + '</select></div>';
+      h += '</div>';
+      h += '<div><button id="es-salvar" class="un-btn" type="button"' + (ajustes.salvando ? ' disabled' : '') + '>' + esc(ajustes.salvando ? t('salvando') : t('salvar')) + '</button>'
+        + (ajustes.msg ? ' <span class="un-mono" style="margin-left:var(--un-s3)">' + esc(ajustes.msg) + '</span>' : '') + '</div>';
+      h += '</div>';
+    }
+    h += '</div>';
+    return h;
+  }
+
+  async function salvarAjustes(novo) {
+    ajustes.salvando = true; ajustes.msg = ''; renderView();
+    try {
+      const r = await fetch(API.replace('painel-dados', 'painel-ajustes'), {
+        method: 'POST', cache: 'no-store', credentials: 'include',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, (SESSAO && SESSAO.token) ? { 'x-painel-sessao': SESSAO.token } : {}),
+        body: JSON.stringify({ cliente: CLIENTE, token: TOKEN, email_semanal: novo })
+      });
+      const j = await r.json();
+      if (!j || !j.ok) throw new Error('falhou');
+      // O servidor normaliza (tira e-mail repetido, limita dia e hora, só liga com destinatário).
+      // Repintar com o que foi digitado mostraria uma coisa e guardaria outra: a tela usa o que voltou.
+      if (state.data && state.data.cliente && j.email_semanal !== undefined) state.data.cliente.email_semanal = j.email_semanal;
+      ajustes.msg = t('salvo');
+    } catch (e) { ajustes.msg = t('erroSalvar'); }
+    ajustes.salvando = false; renderView();
+    setTimeout(() => { if (ajustes.msg) { ajustes.msg = ''; renderView(); } }, 2500);
+  }
+
+  /* ---------- start ---------- */
+  renderSegs(); renderNav(); renderView();
+  // Sem acesso nenhum (abriu o domínio puro) é diferente de acesso recusado pela API.
+  // Entra direto se o aparelho lembra (ou se veio um link antigo com token).
+  // Se não lembra, ainda pode existir o cookie de sessão — o Safari apaga o
+  // armazenamento da página depois de ~7 dias, mas não o cookie. Por isso
+  // perguntamos ao servidor antes de mostrar a tela de login.
+  if (SESSAO && CLIENTE) load();
+  else if (CLIENTE && TOKEN) load();
+  else { state.erro = 'semLink'; renderAll(); tentarCookie(); }
+})();
+</script>
+</body>
+</html>
